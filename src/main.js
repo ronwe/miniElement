@@ -2,8 +2,11 @@ import { define, html } from './lib.js';
 
 var userCard  = {
 	property: {
-		name: '<jo>hn',
-		email: 'john@a<b>c.com',
+		name: '',
+		email: '',
+		desc: {
+			pubtime: '1919'
+		},
 		list: [
 			{name: '<i>'},
 			{name: 'hello'},
@@ -11,8 +14,15 @@ var userCard  = {
 		]
 	},
 	method: {
-		testClick: function(...args) {
-			console.log(123, this, args);
+		testClick: function(evt, root) {
+			//console.log(this, evt );
+			//root.property.name = 'jack';
+			root.property.desc.pubtime = '2019';
+			if (root.property.list.length < 4) {
+				root.property.list.push({name: 'new item'});
+			} else {
+				root.property.list[0].name += '-';
+			}
 		}
 	},
 	render: ({property, method}) => {
@@ -20,8 +30,10 @@ var userCard  = {
 		<style></style>
 
 		<div class="container">
-			<p class="name" @click=${method.testClick}> ${property.name}</p>
-			<p class="email"> @${property.email}</p>
+			<p class="name" @click=${method.testClick}> ${property.name} </p>
+			<p class="email"> <input value=" @${property.email}"/>  </p>
+			<p class="desc"> 描述: ${property.desc.pubtime} </p>
+			<p class="desc"> 描述: ${property.info.desc.desc} </p>
 			<ul>
 				${property.list.map( (book) => {
 						return html`<li @click=${method.testClick}>${book.name}</li>`;

@@ -1,29 +1,8 @@
-/*
-* 支持哪些事件绑定
-*/
+import { wrapperData } from './data.js';
+import { processTag, parseTag, delegateEvents, htmlEscape} from './html.js';
+import { debounce } from './util.js';
+
 let bindedEvents = {};
-const EventNames = {
-	'click': 'click'
-};
-
-function delegateEvents(root, eventsStack, options) {
-	root.addEventListener('click', function(evt) {
-		let element = evt.target;
-		let type = evt.type;
-		let bindedId = element.getAttribute('_bind_' + type);
-		if (!bindedId) {
-			return;
-		}
-	
-		let [id, decoration] = bindedId.split('.');
-		if (!id || !eventsStack[id]) {
-			return;
-		}
-		eventsStack[id].call(element, evt, options);
-	})
-
-}
-
 export function define(tagName, custormOptioins) {
   class BaseElement extends HTMLElement {
     static get name() {
@@ -32,30 +11,51 @@ export function define(tagName, custormOptioins) {
 
     constructor() {
       super();
-			let optionsCloned = {};
+
+			let clonedOptions = {};
 			['property', 'method'].map( name => {
-				optionsCloned[name] = custormOptioins[name] || {};
+				clonedOptions[name] = custormOptioins[name] || {};
 			});
-      var shadow = this.attachShadow( { mode: 'closed' } );
-      
-      let wrapper = document.createElement('template');
-      wrapper.innerHTML = custormOptioins.render(optionsCloned);
-
-      shadow.appendChild(wrapper.content);
+		
+			let element = this;
+			Object.keys(custormOptioins.property).forEach(propName => {
+				if (element.hasAttribute(propName)) {
+					custormOptioins.property[propName] = element.getAttribute(propName);
+				}
+			});
 			
-			//复制事件全局堆栈到内部堆栈， 清空全局堆栈
-			let bindedEventsStack = Object.assign(bindedEvents);
-			bindedEvents = {};
 
-			//事件委托
-			delegateEvents(shadow, bindedEventsStack, optionsCloned);
+      var shadow = this.attachShadow( { mode: 'closed' } );
+      let wrapper = document.createElement('template');
+
+			//变动频繁 需要做下防抖
+			clonedOptions.property = wrapperData(clonedOptions.property, function(prop, newValue, oldValue) {
+				console.log(prop, newValue, oldValue);
+				//数据变动了
+				shadow.innerHTML = '';
+				debounce(doRender)();
+			});
+
+			function doRender() { 
+				wrapper.innerHTML = custormOptioins.render(clonedOptions);
+
+				shadow.appendChild(wrapper.content);
+				//复制事件全局堆栈到内部堆栈， 清空全局堆栈
+				let bindedEventsStack = Object.assign(bindedEvents);
+				bindedEvents = {};
+
+				//事件委托
+				delegateEvents(shadow, bindedEventsStack, clonedOptions);
+			}
+			doRender();
     }
 
     connectedCallback() {
-      console.log(2222);
+      console.log('mounted');
     }
 
     disconnectedCallback() {
+      console.log('unmounted');
     }
 
   }
@@ -64,85 +64,6 @@ export function define(tagName, custormOptioins) {
 }
 
 
-function parseTag(raw, index) {
-	let str = raw[index];
-	//从末尾查找最近空格@ 
-	let tagSymbol = ' @';
-	let tagStrIndex = str.lastIndexOf(tagSymbol);
-	let found = false;
-	if (tagStrIndex > -1) {
-		let tagDetector = str.slice(tagStrIndex);
-		//去掉引号内部分
-		tagDetector = tagDetector.replace(/('|").*\1/,'');
-		if (tagDetector.indexOf('>') === -1) {
-			let tag = str.slice(tagStrIndex + tagSymbol.length).trim();
-			return [str.slice(0, tagStrIndex), tag];
-		}
-	}	
-}
-
-/*
-*
-*/
-function processTag(orginTagContent, value, bindedEvents) {
-	console.log('>>>', orginTagContent,' //',  value);
-	let type = orginTagContent.slice(-1);
-	let tagContent = orginTagContent.slice(0, -1).trim();
-	let tagDecorator = tagContent.match(/^(\w+)\((.*)\)$/);
-	let tagSymbol;
-	let tagDecoration; 
-	if (tagDecorator) {
-		tagSymbol = tagDecorator[1];
-		tagDecoration = tagDecorator[2];
-	} else {
-		tagSymbol = tagContent;
-	}
-	
-	switch (type) {
-		case '=':
-			//绑定事件
-			if (tagSymbol in  EventNames) {
-					let bindId = getBindedIdByFn(value);
-					if (!bindId) {
-						bindId = setBindedIdByFn(bindedEvents, value); 
-					}
-					return [tagSymbol, tagDecoration,  bindId]
-			}
-			break;
-	}
-}
-
-let fnSymbol = Symbol('bid');
-let uuidPreix = 0;
-function uuid() {
-	uuidPreix++;
-	if (uuidPreix >= 1000) {
-		uuidPreix = 0;
-	}
-	let id = (+new Date).toString(36);
-	return ('00' + uuidPreix).slice(-3) + id;
-
-}
-function setBindedIdByFn(bindedEvents, fn) {
-	let id = uuid();
-	fn[fnSymbol] = id;
-	bindedEvents[id] = fn;
-	return id;
-}
-function getBindedIdByFn(fn) {
-	return  fn[fnSymbol];
-}
-
-function htmlEscape(str) {
-	return isNaN(str)? str.toString()
-		.replace(/&/g, '&amp;') 
-		.replace(/>/g, '&gt;')
-		.replace(/</g, '&lt;')
-		.replace(/"/g, '&quot;')
-		.replace(/'/g, '&#39;')
-		.replace(/`/g, '&#96;') 
-		: str.toString();
-}
 
 export function html(strings, ...args) {
 	let raw = strings.raw;
