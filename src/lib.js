@@ -1,8 +1,17 @@
 import { wrapperData } from './data.js';
-import { processTag, parseTag, delegateEvents, htmlEscape} from './html.js';
+import { 
+  processTag, parseTag, 
+  delegateEvents, 
+  htmlEscape, 
+  processHtmlDataId, markDataIdInHtml, affectsToStr
+} from './html.js';
 import { debounce } from './util.js';
+import { isProxySymbol } from './data.js';
 
 let bindedEvents = {};
+
+
+
 export function define(tagName, custormOptioins) {
   class BaseElement extends HTMLElement {
     static get name() {
@@ -29,8 +38,8 @@ export function define(tagName, custormOptioins) {
       let wrapper = document.createElement('template');
 
 			//变动频繁 需要做下防抖
-			clonedOptions.property = wrapperData(clonedOptions.property, function(prop, newValue, oldValue) {
-				console.log(prop, newValue, oldValue);
+			clonedOptions.property = wrapperData(clonedOptions.property, function({prop, newValue, oldValue, dataRoot, dataId}) {
+				console.log(prop, newValue, oldValue, dataRoot, dataId);
 				//数据变动了
 				shadow.innerHTML = '';
 				debounce(doRender)();
@@ -63,6 +72,11 @@ export function define(tagName, custormOptioins) {
 	window.customElements.define(tagName, BaseElement);
 }
 
+/*
+ * */
+function makeAffectsToStr(affects) {
+  return affects.join('-');
+}
 
 
 export function html(strings, ...args) {
@@ -89,10 +103,19 @@ export function html(strings, ...args) {
 		
 
 		result.push(str);
+		if (argShouldAppend && argValue[isProxySymbol]) {
+			argShouldAppend = false;	
+		}
 		if (argShouldAppend) {
 			if (Array.isArray(argValue)) {
 				argValue.forEach(item => result.push(item));
 			} else {
+				//获取数据id绑定到页面上
+				let affects = markDataIdInHtml(argValue.affects);
+				if (affects) {
+					result.push(affects);
+				}
+
 				if (argShouldEncode) {
 					argValue = htmlEscape(argValue);
 				}
@@ -101,5 +124,10 @@ export function html(strings, ...args) {
 		}
 	});
 	result.push(raw.slice(-1)[0]);
-	return result.join('');
+
+	let content = result.join('');
+	//绑定数据节点id
+	content = processHtmlDataId(content);
+	
+	return content;
 }

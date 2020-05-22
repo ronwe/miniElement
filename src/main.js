@@ -2,10 +2,10 @@ import { define, html } from './lib.js';
 
 var userCard  = {
 	property: {
-		name: '',
+		name: "somebody's name",
 		email: '',
 		desc: {
-			pubtime: '1919'
+			pubtime: 1919
 		},
 		list: [
 			{name: '<i>'},
@@ -16,8 +16,8 @@ var userCard  = {
 	method: {
 		testClick: function(evt, root) {
 			//console.log(this, evt );
-			//root.property.name = 'jack';
-			root.property.desc.pubtime = '2019';
+			root.property.name = 'jack';
+      return;
 			if (root.property.list.length < 4) {
 				root.property.list.push({name: 'new item'});
 			} else {
@@ -32,7 +32,7 @@ var userCard  = {
 		<div class="container">
 			<p class="name" @click=${method.testClick}> ${property.name} </p>
 			<p class="email"> <input value=" @${property.email}"/>  </p>
-			<p class="desc"> 描述: ${property.desc.pubtime} </p>
+			<p class="desc"> 描述: ${property.desc.pubtime } </p>
 			<p class="desc"> 描述: ${property.info.desc.desc} </p>
 			<ul>
 				${property.list.map( (book) => {

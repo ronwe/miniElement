@@ -1,5 +1,5 @@
 import { uuid } from './util.js';
-import { proxySymbol} from './data.js';
+import { isProxySymbol, isDataSymbol } from './data.js';
 
 
 /*
@@ -21,6 +21,53 @@ function getBindedIdByFn(fn) {
 	return  fn[fnSymbol];
 }
 
+export function affectsToStr(affects) {
+  return affects.join('-');
+}
+export function markDataIdInHtml(affects) {
+  if (affects) {
+    return `<!--{${affectsToStr(affects)}}-->`;
+  }
+}
+
+/*
+* 将数据id绑定到标签上
+*/
+export function processHtmlDataId(content) {
+	let reg = /<\!\-\-\{([^\>]+)\}\-\->/g;
+	let ret = '';
+	while (true) {
+		let pieces = reg.exec(content);
+		if (!pieces) {
+			break;
+		}
+		let [matched, dataIds] = pieces;
+		let raw = pieces.input;
+		let raw_before = raw.slice(0, pieces.index);
+		let raw_after =  raw.slice( pieces.index + matched.length);
+		
+		let tryMatchTags = raw_before.match(/(<\w+)\b/g);
+		let tryMatchTag;
+		let tagStartPos = -1;
+		if (tryMatchTags) {
+			tryMatchTag = tryMatchTags[tryMatchTags.length - 1];
+			tagStartPos = raw_before.lastIndexOf(tryMatchTag);
+		}
+		if (tagStartPos >= 0) {
+			tagStartPos = tagStartPos + tryMatchTag.length;
+			raw_before = raw_before.slice(0, tagStartPos) + ` _bind_data=${dataIds}  ` +  raw_before.slice(tagStartPos);
+		}
+
+		ret += raw_before;
+		content = raw_after;
+		reg.lastIndex = 0;
+	}
+	ret += content;
+	return ret;
+}
+
+/*
+*处理语法标签 空格+@标示*/
 export function parseTag(raw, index) {
 	let str = raw[index];
 	//从末尾查找最近空格@ 
@@ -90,11 +137,16 @@ export function delegateEvents(root, eventsStack, options) {
 }
 
 export function htmlEscape(str) {
-  if (true === str[proxySymbol]) {
+  if (true === str[isProxySymbol]) {
     return '';
   } 
   if ('object' === typeof str) {
-    return `<pre>${JSON.stringify(str, null, 2)}</pre>`;
+    if (true === str[isDataSymbol]) {
+      str = str.value;
+    } else {
+      return `<pre>${JSON.stringify(str, null, 2)}</pre>`;
+    }
+
   }
 
 	return isNaN(str)? str.toString()
