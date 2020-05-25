@@ -1,5 +1,5 @@
 import { uuid } from './util.js';
-import { isProxySymbol, isDataSymbol } from './data.js';
+import { isProxySymbol, isDataSymbol, fnSymbol } from './symbols.js';
 
 
 /*
@@ -9,7 +9,6 @@ const EventNames = {
 	'click': 'click'
 };
 
-let fnSymbol = Symbol('bid');
 
 function setBindedIdByFn(bindedEvents, fn) {
 	let id = uuid();
@@ -21,12 +20,17 @@ function getBindedIdByFn(fn) {
 	return  fn[fnSymbol];
 }
 
+let dataMarkerBegin = '{%';
+let dataMarkerEnd =  '%}';
+let dataMarkerAny = '_';
+let dataMarkerJoin = '-';
+
 export function affectsToStr(affects) {
-  return affects.join('-');
+  return affects.join(dataMarkerJoin);
 }
 export function markDataIdInHtml(affects) {
   if (affects) {
-    return `<!--{${affectsToStr(affects)}}-->`;
+    return `<!--${dataMarkerBegin}${affectsToStr(affects)}${dataMarkerEnd}-->`;
   }
 }
 
@@ -34,10 +38,12 @@ export function markDataIdInHtml(affects) {
 * 将数据id绑定到标签上
 */
 export function processHtmlDataId(content) {
-	let reg = /<\!\-\-\{([^\>]+)\}\-\->/g;
+  content = content.replace(`${dataMarkerEnd}--><!--${dataMarkerBegin}`, dataMarkerAny);
+  let reg = new RegExp(`<!--${dataMarkerBegin}([^\>]+)${dataMarkerEnd}-->`, 'g');
 	let ret = '';
 	while (true) {
 		let pieces = reg.exec(content);
+    console.log(pieces);
 		if (!pieces) {
 			break;
 		}

@@ -1,27 +1,66 @@
-import { uuid } from './util.js';
+import { 
+  uuid, 
+  Detect 
+} from './util.js';
 
-export var isProxySymbol = Symbol('proxy');
-export var isDataSymbol = Symbol('data');
-
-
+import { 
+  isProxySymbol, 
+  isDataSymbol, 
+  isMethodSymbol,
+  isHackSymbol
+} from './symbols.js';
 
 let dataReflector = [];
-export function getDataRelection(dataMap) {
-  let ret = dataReflector.slice();
-  let [obj, prop] = ret;
-  let relations = [prop];
+
+let globalReorder = null;
+
+
+function getRelateParent(dataMap, obj) {
+  let relations = [];
   let ref = dataMap.get(obj);
   relations.push(ref.dataId);
-  while(ref && ref.parent) {
+  while (ref && ref.parent) {
     ref = dataMap.get(ref.parent);
     relations.push(ref.dataId);
   }
   return relations;
+}
+
+export function startRecordAffects() {
+  globalReorder = [];
+
+}
+export function stopRecordAffects() {
+  let ret = globalReorder.map(record => {
+    let [dataMap, obj, prop] = record;
+    let relations = [prop];
+    relations = relations.concat(getRelateParent(dataMap, obj));
+    return relations;
+  });
+  globalReorder = null;
+  return ret;
+}
+export function getDataRelection(dataMap) {
+  let ret = dataReflector.slice();
+  let [obj, prop] = ret;
+  let relations = [prop];
+  relations = relations.concat(getRelateParent(dataMap, obj));
+  return relations;
 };
 
+/*
+ * 根据类型判断是否到达叶子节点(能够打印的节点)
+ * */
+function isLeafNode(data) {
+  if (typeof data !== 'object') {
+    return data === null || ['undefined', 'string', 'boolean', 'number'].includes(typeof data);
+  } else {
+    return false;
+  }
+}
 function proxyData(data, observer, dataMap, isArray ) {
   if (typeof data !== 'object') {
-    if (!isArray && (data === null || ['undefined', 'string', 'boolean', 'number'].includes(typeof data)) ) {
+    if (!isArray && isLeafNode(data) ){
       let affects = getDataRelection(dataMap);
       let ret = {
         value: data,
@@ -59,10 +98,30 @@ function proxyData(data, observer, dataMap, isArray ) {
             }
           }
           dataReflector = [obj, prop];
-          return proxyData(obj[prop], observer, dataMap, Array.isArray(obj));
+          if (null !== globalReorder && isLeafNode(obj[prop])) {
+            globalReorder.push([dataMap, obj, prop]);
+          }
+          return proxyData(obj[prop], observer, dataMap, Detect.isArray(obj));
         } else if (prop in obj) {
-          if (Array.isArray(obj) && 'map' === prop)) {
-            updateDataMap(obj);
+          if (Detect.isArray(obj) && 'map' === prop) {
+            return function(cbk) {
+              let hackedFn = function(opts) {
+                let objLen = obj.length;
+                let mapResults = [];
+                let j = 0;
+                let proxyObj = proxyData(obj, observer, dataMap, Detect.isArray(obj));
+                for (let i = 0; i < objLen; i++) {
+                  if (undefined !== obj[i] && null !== obj[i]) {
+                    mapResults.push(cbk(proxyObj[i], j));
+                    j++;
+                  }
+                }
+                return mapResults;
+              }
+              hackedFn[isHackSymbol] = true;
+              hackedFn.affects  = getRelateParent(dataMap, obj);
+              return hackedFn;
+            }
           } else {
             return obj[prop];
           }

@@ -1,12 +1,20 @@
-import { wrapperData } from './data.js';
+import { debounce, Detect} from './util.js';
+import { 
+  wrapperData,
+  startRecordAffects,
+  stopRecordAffects
+} from './data.js';
 import { 
   processTag, parseTag, 
   delegateEvents, 
   htmlEscape, 
   processHtmlDataId, markDataIdInHtml, affectsToStr
 } from './html.js';
-import { debounce } from './util.js';
-import { isProxySymbol } from './data.js';
+import { 
+  isHackSymbol,
+  isProxySymbol, 
+  isMethodSymbol 
+} from './symbols.js';
 
 let bindedEvents = {};
 
@@ -25,6 +33,9 @@ export function define(tagName, custormOptioins) {
 			['property', 'method'].map( name => {
 				clonedOptions[name] = custormOptioins[name] || {};
 			});
+      for (let methodName of Object.keys(clonedOptions.method)) {
+        clonedOptions.method[methodName][isMethodSymbol] = true;
+      }
 		
 			let element = this;
 			Object.keys(custormOptioins.property).forEach(propName => {
@@ -88,7 +99,9 @@ export function html(strings, ...args) {
 		let parsedTag =  parseTag(raw, i);
 		let argShouldAppend = true;
 		let argShouldEncode = true;
-		if (parsedTag) {
+
+    //绑定事件
+		if (parsedTag && Detect.isMethod(argValue)) {
 			[str, tag] = parsedTag;
 			if (tag) {
 				argShouldAppend = false;
@@ -103,18 +116,44 @@ export function html(strings, ...args) {
 		
 
 		result.push(str);
-		if (argShouldAppend && argValue[isProxySymbol]) {
-			argShouldAppend = false;	
-		}
+
+    function appendAffectsToResult(affects) {
+      if (affects) {
+        let affectsStr = markDataIdInHtml(affects);
+        if (affectsStr) {
+          result.push(affectsStr)
+        }
+      }
+    }
+
 		if (argShouldAppend) {
-			if (Array.isArray(argValue)) {
+      if (argValue[isProxySymbol]) {
+			  argShouldAppend = false;	
+      } else if (Detect.isFunction(argValue) && !Detect.isMethod(argValue)) {
+
+        let cellectingAffects = false;
+        if (true === argValue[isHackSymbol]) {
+          appendAffectsToResult(argValue.affects);
+        } else {
+          cellectingAffects = true;
+          startRecordAffects();
+        }
+        argValue = argValue({});
+        if (cellectingAffects) {
+          cellectingAffects = false;
+          let affects = stopRecordAffects();
+          affects.forEach(appendAffectsToResult);
+        }
+       // stopRecordAffects();
+      }
+		}
+
+		if (argShouldAppend) {
+			if (Detect.isArray(argValue)) {
 				argValue.forEach(item => result.push(item));
 			} else {
 				//获取数据id绑定到页面上
-				let affects = markDataIdInHtml(argValue.affects);
-				if (affects) {
-					result.push(affects);
-				}
+        appendAffectsToResult(argValue.affects);
 
 				if (argShouldEncode) {
 					argValue = htmlEscape(argValue);
@@ -127,7 +166,9 @@ export function html(strings, ...args) {
 
 	let content = result.join('');
 	//绑定数据节点id
+  console.log(content);
 	content = processHtmlDataId(content);
+  console.log(content);
 	
 	return content;
 }

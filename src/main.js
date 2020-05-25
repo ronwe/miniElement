@@ -32,7 +32,7 @@ var userCard  = {
 		<div class="container">
 			<p class="name" @click=${method.testClick}> ${property.name} </p>
 			<p class="email"> <input value=" @${property.email}"/>  </p>
-			<p class="desc"> 描述: ${property.desc.pubtime } </p>
+			<p class="desc"> 描述: ${() => property.desc.pubtime + property.name} </p>
 			<p class="desc"> 描述: ${property.info.desc.desc} </p>
 			<ul>
 				${property.list.map( (book) => {

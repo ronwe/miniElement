@@ -1,3 +1,4 @@
+import { isProxySymbol, isMethodSymbol } from './symbols.js';
 
 //思路from  https://github.com/dylang/shortid
 let REDUCE_TIME = +new Date - Math.ceil(Math.random() * 1000); 
@@ -43,4 +44,10 @@ export function debounce(cb, delay = 0) {
     }
     reduceEvent = setTimeout(() => cb.apply(null, args) , delay);
   }
+}
+
+export var Detect = {
+  isMethod: arg => true === arg[isMethodSymbol], 
+  isFunction: arg => 'function' === typeof arg,
+  isArray: arg => Array.isArray(arg)
 }
