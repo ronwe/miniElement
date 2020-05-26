@@ -1,5 +1,15 @@
-import { uuid } from './util.js';
-import { isProxySymbol, isDataSymbol, fnSymbol } from './symbols.js';
+import { 
+  uuid,
+  debounce
+} from './util.js';
+
+import { 
+  dataMarkerJoin,
+  dataMarkerAny,
+  isProxySymbol, 
+  isDataSymbol, 
+  fnSymbol 
+} from './symbols.js';
 
 
 /*
@@ -22,8 +32,7 @@ function getBindedIdByFn(fn) {
 
 let dataMarkerBegin = '{%';
 let dataMarkerEnd =  '%}';
-let dataMarkerAny = '_';
-let dataMarkerJoin = '-';
+let dataAttrName  = '_bind_data';
 
 export function affectsToStr(affects) {
   return affects.join(dataMarkerJoin);
@@ -43,7 +52,6 @@ export function processHtmlDataId(content) {
 	let ret = '';
 	while (true) {
 		let pieces = reg.exec(content);
-    console.log(pieces);
 		if (!pieces) {
 			break;
 		}
@@ -61,7 +69,8 @@ export function processHtmlDataId(content) {
 		}
 		if (tagStartPos >= 0) {
 			tagStartPos = tagStartPos + tryMatchTag.length;
-			raw_before = raw_before.slice(0, tagStartPos) + ` _bind_data=${dataIds}  ` +  raw_before.slice(tagStartPos);
+
+			raw_before = raw_before.slice(0, tagStartPos) + ` ${dataAttrName}="${dataMarkerAny}${dataIds}${dataMarkerAny}"  ` +  raw_before.slice(tagStartPos);
 		}
 
 		ret += raw_before;
@@ -165,3 +174,60 @@ export function htmlEscape(str) {
 		: str.toString();
 }
 
+/*
+ * 记录变化id，更新dom
+ */
+export function updatingProperty({shadow, template, updated, getHtml}) {
+  let propertyStack = [];
+  return function({dataId, dataNew}) {
+    if (!propertyStack.includes(dataId)) {
+      propertyStack.push(dataId);
+    }
+    debounce(() => {
+      let changedProperty = propertyStack.slice();
+      propertyStack.length = 0;
+
+
+      let newHtml = getHtml();
+      template.innerHTML = newHtml;
+
+      changedProperty.forEach(dataId => {
+        let xPath = `[${dataAttrName}*="${dataMarkerAny}${dataId}${dataMarkerAny}"]`;
+        let oldDoms =  shadow.querySelectorAll(xPath);
+        oldDoms.forEach( oldDom => {
+          let dataAttr = oldDom.getAttribute(dataAttrName);
+          let newDom = template.content.querySelector(`[${dataAttrName}="${dataAttr}"]`);
+          if (newDom ) {
+            let childrensKeep = [];
+            if (dataNew > 0 || dataNew < 0) {
+              //比对新老dom，将老节点替换回去
+              let childPath = `[${dataAttrName}*="${dataId}${dataMarkerAny}"]`;
+              let childrensOld = Array.from(oldDom.querySelectorAll(childPath));
+
+              let childrensNew = Array.from(newDom.querySelectorAll(childPath));
+              childrensOld.forEach( child => {
+                let dataAttr = child.getAttribute(dataAttrName);
+                let childNew = newDom.querySelector(`[${dataAttrName}="${dataAttr}"]`);
+                if (childNew) {
+                  childrensKeep.push([dataAttr, child, childNew]);
+                }
+              });
+
+            }
+            oldDom.replaceWith(newDom);
+            childrensKeep.forEach( item => {
+              let [dataAttr, child, childNew] = item;
+              childNew.replaceWith(child);
+            });
+          } else if (!newDom) {
+            oldDom.parentNode.removeChild(oldDom);
+          }
+        });
+      });
+      if (updated) {
+        updated();
+      }
+      
+    })();
+  }
+}

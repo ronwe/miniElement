@@ -4,6 +4,7 @@ import {
 } from './util.js';
 
 import { 
+  dataMarkerJoin,
   isProxySymbol, 
   isDataSymbol, 
   isMethodSymbol,
@@ -85,68 +86,94 @@ function proxyData(data, observer, dataMap, isArray ) {
   }
 
   return new Proxy(data, {
-     get: (obj, prop) => {
-        if (isProxySymbol === prop) {
-          return true;
+    get: (obj, prop) => {
+      //console.log('get', obj, prop, obj.hasOwnProperty(prop));
+      if (isProxySymbol === prop) {
+        return true;
+      }
+
+      if (obj.hasOwnProperty(prop)) {
+        if (dataMap) {
+          updateDataMap(obj);
+          if ('object' === typeof obj[prop]) {
+            updateDataMap(obj[prop], obj);
+          }
         }
-       
-        if (obj.hasOwnProperty(prop)) {
-          if (dataMap) {
-            updateDataMap(obj);
-            if ('object' === typeof obj[prop]) {
-              updateDataMap(obj[prop], obj);
-            }
-          }
-          dataReflector = [obj, prop];
-          if (null !== globalReorder && isLeafNode(obj[prop])) {
-            globalReorder.push([dataMap, obj, prop]);
-          }
+        dataReflector = [obj, prop];
+        if (null !== globalReorder && isLeafNode(obj[prop])) {
+          globalReorder.push([dataMap, obj, prop]);
+        }
+        if (obj[prop] && true === obj[prop][isProxySymbol])  {
+          return obj[prop];
+        } else {
           return proxyData(obj[prop], observer, dataMap, Detect.isArray(obj));
-        } else if (prop in obj) {
-          if (Detect.isArray(obj) && 'map' === prop) {
-            return function(cbk) {
-              let hackedFn = function(opts) {
-                let objLen = obj.length;
-                let mapResults = [];
-                let j = 0;
-                let proxyObj = proxyData(obj, observer, dataMap, Detect.isArray(obj));
-                for (let i = 0; i < objLen; i++) {
-                  if (undefined !== obj[i] && null !== obj[i]) {
-                    mapResults.push(cbk(proxyObj[i], j));
-                    j++;
-                  }
+        }
+      } else if (prop in obj) {
+        if (Detect.isArray(obj) && 'map' === prop) {
+          return function(cbk) {
+            let hackedFn = function(opts) {
+              let objLen = obj.length;
+              let mapResults = [];
+              let j = 0;
+              let proxyObj = proxyData(obj, observer, dataMap, Detect.isArray(obj));
+              for (let i = 0; i < objLen; i++) {
+                if (undefined !== obj[i] && null !== obj[i]) {
+                  mapResults.push(cbk(proxyObj[i], j));
+                  j++;
                 }
-                return mapResults;
               }
-              hackedFn[isHackSymbol] = true;
-              hackedFn.affects  = getRelateParent(dataMap, obj);
-              return hackedFn;
+              return mapResults;
             }
-          } else {
-            return obj[prop];
+            hackedFn[isHackSymbol] = true;
+            hackedFn.affects  = getRelateParent(dataMap, obj);
+            return hackedFn;
           }
         } else {
-          //return proxyData({}, observer );
-          return proxyData({} );
+          return obj[prop];
         }
-     },
+      } else {
+        //return proxyData({}, observer );
+        return proxyData({} );
+      }
+    },
      set : (obj, prop, value) => {
-        //console.log(obj, prop, value);
-        if (value !== obj[prop]) {
-          if (observer) {
-            observer({
-              prop, 
-              newValue: value, 
-              oldValue: obj[prop], 
-              dataRoot: obj,
-              dataId: dataMap && dataMap.get(obj)
+       //console.log('set', obj, prop, value);
+       if (value !== obj[prop]) {
+         if (observer) {
+           let oldValue = obj[prop];
+           let existsProp = obj.hasOwnProperty(prop);
+           let dataId;
+           let pushNew;
+           if (dataMap) {
+             if (Detect.isArray(obj) && 'length' === prop) { 
+               pushNew = value - obj.length;
+             }
+             if (existsProp && isLeafNode(obj[prop])) {
+               dataId = [prop].concat(getRelateParent(dataMap, obj));
+             } else {
+               dataId = [].concat(getRelateParent(dataMap, obj));
+             }
+           }
+
+           observer({
+             prop, 
+             newValue: value, 
+             oldValue, 
+             dataRoot: obj,
+             dataNew: pushNew,
+             dataId: dataId.join(dataMarkerJoin)
            });
           }
           obj[prop] = value;
         }
         return true;
      },
-     deleteProperty: () => {
+     deleteProperty: (obj, prop) => {
+       console.log('delete...', obj, prop);
+       if (prop in obj) {
+         delete obj[prop];
+       }
+       return true;
 
      }
   })

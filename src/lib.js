@@ -1,16 +1,24 @@
-import { debounce, Detect} from './util.js';
+import { 
+  debounce, 
+  Detect
+} from './util.js';
+
 import { 
   wrapperData,
   startRecordAffects,
   stopRecordAffects
 } from './data.js';
+
 import { 
   processTag, parseTag, 
   delegateEvents, 
   htmlEscape, 
+  updatingProperty,
   processHtmlDataId, markDataIdInHtml, affectsToStr
 } from './html.js';
+
 import { 
+  isDataSymbol,
   isHackSymbol,
   isProxySymbol, 
   isMethodSymbol 
@@ -46,26 +54,37 @@ export function define(tagName, custormOptioins) {
 			
 
       var shadow = this.attachShadow( { mode: 'closed' } );
-      let wrapper = document.createElement('template');
+      let template = document.createElement('template');
 
 			//变动频繁 需要做下防抖
-			clonedOptions.property = wrapperData(clonedOptions.property, function({prop, newValue, oldValue, dataRoot, dataId}) {
-				console.log(prop, newValue, oldValue, dataRoot, dataId);
-				//数据变动了
-				shadow.innerHTML = '';
-				debounce(doRender)();
-			});
+			clonedOptions.property = wrapperData(
+        clonedOptions.property, 
+        updatingProperty({
+          shadow,
+          template,
+          getHtml: function () {
+            return custormOptioins.render(clonedOptions); 
+          },
+          updated: function() {
+            updateBindedEvents();
+          }
+        })
+      );
 
-			function doRender() { 
-				wrapper.innerHTML = custormOptioins.render(clonedOptions);
-
-				shadow.appendChild(wrapper.content);
+      function updateBindedEvents() {
 				//复制事件全局堆栈到内部堆栈， 清空全局堆栈
 				let bindedEventsStack = Object.assign(bindedEvents);
 				bindedEvents = {};
 
 				//事件委托
 				delegateEvents(shadow, bindedEventsStack, clonedOptions);
+      }
+
+			function doRender() { 
+				template.innerHTML = custormOptioins.render(clonedOptions);
+				shadow.appendChild(template.content);
+
+        updateBindedEvents();
 			}
 			doRender();
     }
@@ -114,7 +133,6 @@ export function html(strings, ...args) {
 			}
 		}
 		
-
 		result.push(str);
 
     function appendAffectsToResult(affects) {
@@ -166,9 +184,7 @@ export function html(strings, ...args) {
 
 	let content = result.join('');
 	//绑定数据节点id
-  console.log(content);
 	content = processHtmlDataId(content);
-  console.log(content);
 	
 	return content;
 }

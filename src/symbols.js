@@ -5,3 +5,8 @@ export var isMethodSymbol = Symbol('method');
 export var isHackSymbol = Symbol('method');
 
 export var fnSymbol = Symbol('bid');
+
+
+
+export var dataMarkerAny = '_';
+export var dataMarkerJoin = '-';

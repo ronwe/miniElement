@@ -16,13 +16,14 @@ var userCard  = {
 	method: {
 		testClick: function(evt, root) {
 			//console.log(this, evt );
-			root.property.name = 'jack';
-      return;
+			//root.property.name = 'jack';
+			root.property.list.splice(0, 1);
+      /*
 			if (root.property.list.length < 4) {
 				root.property.list.push({name: 'new item'});
 			} else {
-				root.property.list[0].name += '-';
 			}
+      */
 		}
 	},
 	render: ({property, method}) => {
@@ -32,11 +33,11 @@ var userCard  = {
 		<div class="container">
 			<p class="name" @click=${method.testClick}> ${property.name} </p>
 			<p class="email"> <input value=" @${property.email}"/>  </p>
-			<p class="desc"> 描述: ${() => property.desc.pubtime + property.name} </p>
+			<p class="desc"> 描述: ${`[${property.desc.pubtime}]${property.name}`} </p>
 			<p class="desc"> 描述: ${property.info.desc.desc} </p>
 			<ul>
 				${property.list.map( (book) => {
-						return html`<li @click=${method.testClick}>${book.name}</li>`;
+						return html`<li @click=${method.testClick}>${book.name}<input type=checkbox /></li>`;
 				})}
 			</ul>
 		</div>`
