@@ -181,17 +181,19 @@ export function updatingProperty({shadow, template, updated, getHtml}) {
   let propertyStack = [];
   return function({dataId, dataNew}) {
     if (!propertyStack.includes(dataId)) {
-      propertyStack.push(dataId);
+      propertyStack.push([dataId, dataNew]);
     }
     debounce(() => {
       let changedProperty = propertyStack.slice();
       propertyStack.length = 0;
 
+      //子节点的dataId更长 先处理
+      changedProperty.sort( (prev, cur) => cur[0].length - prev[0].length);
+
 
       let newHtml = getHtml();
       template.innerHTML = newHtml;
-
-      changedProperty.forEach(dataId => {
+      changedProperty.forEach(([dataId, dataNew]) => {
         let xPath = `[${dataAttrName}*="${dataMarkerAny}${dataId}${dataMarkerAny}"]`;
         let oldDoms =  shadow.querySelectorAll(xPath);
         oldDoms.forEach( oldDom => {
@@ -208,17 +210,17 @@ export function updatingProperty({shadow, template, updated, getHtml}) {
               childrensOld.forEach( child => {
                 let dataAttr = child.getAttribute(dataAttrName);
                 let childNew = newDom.querySelector(`[${dataAttrName}="${dataAttr}"]`);
-                if (childNew) {
+                if (childNew && childNew !== child) {
                   childrensKeep.push([dataAttr, child, childNew]);
                 }
               });
 
             }
-            oldDom.replaceWith(newDom);
             childrensKeep.forEach( item => {
               let [dataAttr, child, childNew] = item;
-              childNew.replaceWith(child);
+              childNew.replaceWith(child.cloneNode(true));
             });
+            oldDom.replaceWith(newDom.cloneNode(true));
           } else if (!newDom) {
             oldDom.parentNode.removeChild(oldDom);
           }

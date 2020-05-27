@@ -17,13 +17,8 @@ var userCard  = {
 		testClick: function(evt, root) {
 			//console.log(this, evt );
 			//root.property.name = 'jack';
-			root.property.list.splice(0, 1);
-      /*
-			if (root.property.list.length < 4) {
 				root.property.list.push({name: 'new item'});
-			} else {
-			}
-      */
+      root.property.list[2].name = 'updated';
 		}
 	},
 	render: ({property, method}) => {

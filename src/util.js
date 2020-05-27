@@ -49,5 +49,6 @@ export function debounce(cb, delay = 0) {
 export var Detect = {
   isMethod: arg => true === arg[isMethodSymbol], 
   isFunction: arg => 'function' === typeof arg,
+  isNumber: arg => !isNaN(arg * 1),
   isArray: arg => Array.isArray(arg)
 }

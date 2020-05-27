@@ -145,8 +145,13 @@ function proxyData(data, observer, dataMap, isArray ) {
            let dataId;
            let pushNew;
            if (dataMap) {
-             if (Detect.isArray(obj) && 'length' === prop) { 
-               pushNew = value - obj.length;
+             if (Detect.isArray(obj) ){
+               if ('length' === prop ) { 
+                pushNew = value - obj.length;
+               } else if (Detect.isNumber(prop) && !obj.hasOwnProperty(prop)) {
+                pushNew = prop  - ( obj.length - 1);
+               }
+               console.log('pushNew', pushNew);
              }
              if (existsProp && isLeafNode(obj[prop])) {
                dataId = [prop].concat(getRelateParent(dataMap, obj));
