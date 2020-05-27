@@ -180,7 +180,7 @@ export function htmlEscape(str) {
 export function updatingProperty({shadow, template, updated, getHtml}) {
   let propertyStack = [];
   return function({dataId, dataNew}) {
-    if (!propertyStack.includes(dataId)) {
+    if (!propertyStack.some(([id]) => id=== dataId)) {
       propertyStack.push([dataId, dataNew]);
     }
     debounce(() => {

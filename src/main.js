@@ -17,7 +17,7 @@ var userCard  = {
 		testClick: function(evt, root) {
 			//console.log(this, evt );
 			//root.property.name = 'jack';
-				root.property.list.push({name: 'new item'});
+			root.property.list.push({name: 'new item ' + i});
       root.property.list[2].name = 'updated';
 		}
 	},
