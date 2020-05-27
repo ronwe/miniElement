@@ -86,38 +86,38 @@ function proxyData(data, observer, dataMap, isArray ) {
   }
 
   return new Proxy(data, {
-    get: (obj, prop) => {
-      //console.log('get', obj, prop, obj.hasOwnProperty(prop));
+    get: (target, prop) => {
+      //console.log('get', target, prop, target.hasOwnProperty(prop));
       if (isProxySymbol === prop) {
         return true;
       }
 
-      if (obj.hasOwnProperty(prop)) {
+      if (target.hasOwnProperty(prop)) {
         if (dataMap) {
-          updateDataMap(obj);
-          if ('object' === typeof obj[prop]) {
-            updateDataMap(obj[prop], obj);
+          updateDataMap(target);
+          if ('object' === typeof target[prop]) {
+            updateDataMap(target[prop], target);
           }
         }
-        dataReflector = [obj, prop];
-        if (null !== globalReorder && isLeafNode(obj[prop])) {
-          globalReorder.push([dataMap, obj, prop]);
+        dataReflector = [target, prop];
+        if (null !== globalReorder && isLeafNode(target[prop])) {
+          globalReorder.push([dataMap, target, prop]);
         }
-        if (obj[prop] && true === obj[prop][isProxySymbol])  {
-          return obj[prop];
+        if (target[prop] && true === target[prop][isProxySymbol])  {
+          return target[prop];
         } else {
-          return proxyData(obj[prop], observer, dataMap, Detect.isArray(obj));
+          return proxyData(target[prop], observer, dataMap, Detect.isArray(target));
         }
-      } else if (prop in obj) {
-        if (Detect.isArray(obj) && 'map' === prop) {
+      } else if (prop in target) {
+        if (Detect.isArray(target) && 'map' === prop) {
           return function(cbk) {
             let hackedFn = function(opts) {
-              let objLen = obj.length;
+              let targetLen = target.length;
               let mapResults = [];
               let j = 0;
-              let proxyObj = proxyData(obj, observer, dataMap, Detect.isArray(obj));
-              for (let i = 0; i < objLen; i++) {
-                if (undefined !== obj[i] && null !== obj[i]) {
+              let proxyObj = proxyData(target, observer, dataMap, Detect.isArray(target));
+              for (let i = 0; i < targetLen; i++) {
+                if (undefined !== target[i] && null !== target[i]) {
                   mapResults.push(cbk(proxyObj[i], j));
                   j++;
                 }
@@ -125,38 +125,38 @@ function proxyData(data, observer, dataMap, isArray ) {
               return mapResults;
             }
             hackedFn[isHackSymbol] = true;
-            hackedFn.affects  = getRelateParent(dataMap, obj);
+            hackedFn.affects  = getRelateParent(dataMap, target);
             return hackedFn;
           }
         } else {
-          return obj[prop];
+          return target[prop];
         }
       } else {
         //return proxyData({}, observer );
         return proxyData({} );
       }
     },
-     set : (obj, prop, value) => {
-       //console.log('set', obj, prop, value);
-       if (value !== obj[prop]) {
+     set : (target, prop, value) => {
+       //console.log('set', target, prop, value);
+       if (value !== target[prop]) {
          if (observer) {
-           let oldValue = obj[prop];
-           let existsProp = obj.hasOwnProperty(prop);
+           let oldValue = target[prop];
+           let existsProp = target.hasOwnProperty(prop);
            let dataId;
            let pushNew;
            if (dataMap) {
-             if (Detect.isArray(obj) ){
+             if (Detect.isArray(target) ){
                if ('length' === prop ) { 
-                pushNew = value - obj.length;
-               } else if (Detect.isNumber(prop) && !obj.hasOwnProperty(prop)) {
-                pushNew = prop  - ( obj.length - 1);
+                pushNew = value - target.length;
+               } else if (Detect.isNumber(prop) && !target.hasOwnProperty(prop)) {
+                pushNew = prop  - ( target.length - 1);
                }
-               console.log('pushNew', pushNew);
+               //console.log('pushNew', pushNew);
              }
-             if (existsProp && isLeafNode(obj[prop])) {
-               dataId = [prop].concat(getRelateParent(dataMap, obj));
+             if (existsProp && isLeafNode(target[prop])) {
+               dataId = [prop].concat(getRelateParent(dataMap, target));
              } else {
-               dataId = [].concat(getRelateParent(dataMap, obj));
+               dataId = [].concat(getRelateParent(dataMap, target));
              }
            }
 
@@ -164,19 +164,19 @@ function proxyData(data, observer, dataMap, isArray ) {
              prop, 
              newValue: value, 
              oldValue, 
-             dataRoot: obj,
+             dataRoot: target,
              dataNew: pushNew,
              dataId: dataId.join(dataMarkerJoin)
            });
           }
-          obj[prop] = value;
+          target[prop] = value;
         }
         return true;
      },
-     deleteProperty: (obj, prop) => {
-       console.log('delete...', obj, prop);
-       if (prop in obj) {
-         delete obj[prop];
+     deleteProperty: (target, prop) => {
+       console.log('delete...', target, prop);
+       if (prop in target) {
+         delete target[prop];
        }
        return true;
 
