@@ -52,7 +52,7 @@ export function getDataRelection(dataMap) {
 /*
  * 根据类型判断是否到达叶子节点(能够打印的节点)
  * */
-function isLeafNode(data) {
+function printAble(data) {
   if (typeof data !== 'object') {
     return data === null || ['undefined', 'string', 'boolean', 'number'].includes(typeof data);
   } else {
@@ -61,7 +61,7 @@ function isLeafNode(data) {
 }
 function proxyData(data, observer, dataMap, isArray ) {
   if (typeof data !== 'object') {
-    if (!isArray && isLeafNode(data) ){
+    if (!isArray && printAble(data) ){
       let affects = getDataRelection(dataMap);
       let ret = {
         value: data,
@@ -100,7 +100,7 @@ function proxyData(data, observer, dataMap, isArray ) {
           }
         }
         dataReflector = [target, prop];
-        if (null !== globalReorder && isLeafNode(target[prop])) {
+        if (null !== globalReorder && printAble(target[prop])) {
           globalReorder.push([dataMap, target, prop]);
         }
         if (target[prop] && true === target[prop][isProxySymbol])  {
@@ -153,7 +153,7 @@ function proxyData(data, observer, dataMap, isArray ) {
                }
                //console.log('pushNew', pushNew);
              }
-             if (existsProp && isLeafNode(target[prop])) {
+             if (existsProp && printAble(target[prop])) {
                dataId = [prop].concat(getRelateParent(dataMap, target));
              } else {
                dataId = [].concat(getRelateParent(dataMap, target));
