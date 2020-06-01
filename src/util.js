@@ -1,4 +1,8 @@
-import { isProxySymbol, isMethodSymbol } from './symbols.js';
+import { 
+  isProxySymbol, 
+  isMethodSymbol, 
+  isSlotSymbol
+} from './symbols.js';
 
 //思路from  https://github.com/dylang/shortid
 let REDUCE_TIME = +new Date - Math.ceil(Math.random() * 1000); 
@@ -48,6 +52,7 @@ export function debounce(cb, delay = 0) {
 
 export var Detect = {
   isMethod: arg => true === arg[isMethodSymbol], 
+  isSlot: arg => true === arg[isSlotSymbol], 
   isFunction: arg => 'function' === typeof arg,
   isNumber: arg => !isNaN(arg * 1),
   isArray: arg => Array.isArray(arg)

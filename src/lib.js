@@ -1,4 +1,5 @@
 import { 
+  uuid,
   debounce, 
   Detect
 } from './util.js';
@@ -21,6 +22,7 @@ import {
   isDataSymbol,
   isHackSymbol,
   isProxySymbol, 
+  isSlotSymbol,
   isMethodSymbol 
 } from './symbols.js';
 
@@ -51,6 +53,21 @@ export function define(tagName, custormOptioins) {
 					custormOptioins.property[propName] = element.getAttribute(propName);
 				}
 			});
+      clonedOptions.slots = {};
+      Array.from(element.querySelectorAll('[slot]')).forEach( slot => {
+        let slotName = slot.getAttribute('slot');
+        function copySlot()  {
+          let clonedSlot = slot.cloneNode(true);
+          let clonedSlotName = slotName + '-cp' +  uuid(); 
+          clonedSlot.setAttribute('slot', clonedSlotName);
+          clonedSlot.setAttribute('iscopyslot', true);
+          element.appendChild(clonedSlot);
+
+          return `<slot name=${clonedSlotName}></slot>`; 
+        }
+        copySlot[isSlotSymbol] = true;
+        clonedOptions.slots[slotName] =  copySlot;
+      });
 			
 
       var shadow = this.attachShadow( { mode: 'closed' } );
@@ -61,15 +78,32 @@ export function define(tagName, custormOptioins) {
         clonedOptions.property, 
         updatingProperty({
           shadow,
-          template,
           getHtml: function () {
             return custormOptioins.render(clonedOptions); 
           },
           updated: function() {
+            clearUnUsedCopySlots();
             updateBindedEvents();
           }
         })
       );
+
+      //清除无用slot 
+      function clearUnUsedCopySlots() {
+        let copySlots = element.querySelectorAll('[slot]'); 
+        Array.from(copySlots).forEach( slot => {
+          let slotName = slot.getAttribute('slot');
+          if (slot.getAttribute('iscopyslot') !== 'true') {
+            return;
+          }
+          let slotInNew = shadow.querySelector(`slot[name="${slotName}"]`);
+          if (slotInNew) {
+            return;
+          }
+          element.removeChild(slot);
+        });
+
+      }
 
       function updateBindedEvents() {
 				//复制事件全局堆栈到内部堆栈， 清空全局堆栈
@@ -132,6 +166,9 @@ export function html(strings, ...args) {
 				
 			}
 		}
+    if (undefined === argValue) {
+      argShouldAppend = false;
+    }
 		
 		result.push(str);
 
@@ -147,6 +184,9 @@ export function html(strings, ...args) {
 		if (argShouldAppend) {
       if (argValue[isProxySymbol]) {
 			  argShouldAppend = false;	
+      } else if (Detect.isFunction(argValue) && Detect.isSlot(argValue)) {
+        argValue = argValue();
+
       } else if (Detect.isFunction(argValue) && !Detect.isMethod(argValue)) {
 
         let cellectingAffects = false;
@@ -174,7 +214,7 @@ export function html(strings, ...args) {
         appendAffectsToResult(argValue.affects);
 
 				if (argShouldEncode) {
-					argValue = htmlEscape(argValue);
+//					argValue = htmlEscape(argValue);
 				}
 				result.push(argValue);
 			}

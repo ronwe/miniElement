@@ -177,7 +177,7 @@ export function htmlEscape(str) {
 /*
  * 记录变化id，更新dom
  */
-export function updatingProperty({shadow, template, updated, getHtml}) {
+export function updatingProperty({shadow, updated, getHtml}) {
   let propertyStack = [];
   return function({dataId, dataNew}) {
     if (!propertyStack.some(([id]) => id=== dataId)) {
@@ -191,8 +191,10 @@ export function updatingProperty({shadow, template, updated, getHtml}) {
       changedProperty.sort( (prev, cur) => cur[0].length - prev[0].length);
 
 
+      let template = document.createElement('template');
       let newHtml = getHtml();
       template.innerHTML = newHtml;
+
       changedProperty.forEach(([dataId, dataNew]) => {
         let xPath = `[${dataAttrName}*="${dataMarkerAny}${dataId}${dataMarkerAny}"]`;
         let oldDoms =  shadow.querySelectorAll(xPath);
@@ -200,9 +202,9 @@ export function updatingProperty({shadow, template, updated, getHtml}) {
           let dataAttr = oldDom.getAttribute(dataAttrName);
           let newDom = template.content.querySelector(`[${dataAttrName}="${dataAttr}"]`);
           if (newDom ) {
+            //比对新老dom，将老节点替换回去
             let childrensKeep = [];
             if (dataNew > 0 || dataNew < 0) {
-              //比对新老dom，将老节点替换回去
               let childPath = `[${dataAttrName}*="${dataId}${dataMarkerAny}"]`;
               let childrensOld = Array.from(oldDom.querySelectorAll(childPath));
 

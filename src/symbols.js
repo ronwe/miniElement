@@ -1,6 +1,7 @@
 export var isProxySymbol = Symbol('proxy');
 export var isDataSymbol = Symbol('data');
 export var isMethodSymbol = Symbol('method');
+export var isSlotSymbol = Symbol('slot');
 
 export var isHackSymbol = Symbol('method');
 

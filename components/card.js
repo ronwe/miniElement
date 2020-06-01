@@ -1,4 +1,4 @@
-import { define, html } from './lib.js';
+import { define, html } from '../src/lib.js';
 
 var userCard  = {
 	property: {
@@ -17,11 +17,14 @@ var userCard  = {
 		testClick: function(evt, root) {
 			//console.log(this, evt );
 			//root.property.name = 'jack';
-			root.property.list.push({name: 'new item ' + i});
+      let i = 10;
+      while (i--) {
+				//root.property.list.push({name: 'new item ' + i});
+      }
       root.property.list[2].name = 'updated';
 		}
 	},
-	render: ({property, method}) => {
+	render: ({property,slots, method}) => {
 		return html`
 		<style></style>
 
@@ -29,10 +32,18 @@ var userCard  = {
 			<p class="name" @click=${method.testClick}> ${property.name} </p>
 			<p class="email"> <input value=" @${property.email}"/>  </p>
 			<p class="desc"> 描述: ${`[${property.desc.pubtime}]${property.name}`} </p>
-			<p class="desc"> 描述: ${property.info.desc.desc} </p>
+			<p class="desc"> 
+        描述: 
+              <slot name="list-icon"></slot>
+        ${property.info.desc.desc} 
+      </p>
 			<ul>
 				${property.list.map( (book) => {
-						return html`<li @click=${method.testClick}>${book.name}<input type=checkbox /></li>`;
+						return html`<li @click=${method.testClick}>${book.name}
+               <input type=checkbox />
+              <slot name="list-icon"></slot>
+              ${slots['list-icon']}
+            </li>`;
 				})}
 			</ul>
 		</div>`
