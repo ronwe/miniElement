@@ -7,7 +7,7 @@ export var isHackSymbol = Symbol('method');
 
 export var fnSymbol = Symbol('bid');
 
-
+export var copySlotAttr = 'copy-slot';
 
 export var dataMarkerAny = '_';
 export var dataMarkerJoin = '-';

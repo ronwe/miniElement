@@ -4,6 +4,7 @@ import {
 } from './util.js';
 
 import { 
+  copySlotAttr,
   dataMarkerJoin,
   dataMarkerAny,
   isProxySymbol, 
@@ -131,10 +132,41 @@ export function processTag(orginTagContent, value, bindedEvents) {
 }
 
 /*
+ * 绑定所有事件类型委托*/
+function bindAllDeletgate(root, handler) {
+  Object.keys(EventNames).forEach( eventName => {
+    root.addEventListener(eventName, handler);
+  });
+}
+/*
+ *处理clone的slot
+ * */
+
+export function delegateSlotEvents(rootElement) {
+  function slotEventHandler(evt) {
+    let element = evt.target;
+    let refSlotName = element.getAttribute(copySlotAttr); 
+    let slotName = element.getAttribute('slot'); 
+    let realSlot;
+    if (refSlotName && slotName && slotName.indexOf(refSlotName) === 0 ) {
+      realSlot = rootElement.querySelector(`[slot="${refSlotName}"]`);
+      evt.stopPropagation();
+      evt.preventDefault();
+    }
+    if (realSlot) {
+      //redispatch event on original slot elment
+      let newEvt = new  evt.constructor(evt.type, evt);
+      realSlot.dispatchEvent(newEvt);
+    }
+  };
+
+  bindAllDeletgate(rootElement, slotEventHandler);
+}
+/*
  * 绑定事件委托
  */
 export function delegateEvents(root, eventsStack, options) {
-  root.addEventListener('click', function(evt) {
+  function eventHandler(evt) {
     let element = evt.target;
     let type = evt.type;
     let bindedId = element.getAttribute('_bind_' + type);
@@ -147,8 +179,8 @@ export function delegateEvents(root, eventsStack, options) {
       return;
     }
     eventsStack[id].call(element, evt, options);
-  })
-
+  }
+  bindAllDeletgate(root, eventHandler);
 }
 
 export function htmlEscape(str) {

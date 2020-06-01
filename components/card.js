@@ -19,7 +19,7 @@ var userCard  = {
       //root.property.name = 'jack';
       let i = 10;
       while (i--) {
-        root.property.list.push({name: 'new item ' + i});
+        //root.property.list.push({name: 'new item ' + i});
       }
       root.property.list[2].name = 'updated';
     }

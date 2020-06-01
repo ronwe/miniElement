@@ -1,9 +1,12 @@
 <html>
 <body>
 	<user-card email="john@a<b>c.com">
-    <span slot="list-icon">&copy</span>
+    <span slot="list-icon" class="slot">&copy</span>
   </user-card>
 
+  <script>
+    document.querySelector('[slot]').addEventListener('click', e => console.log(e))
+  </script>
   <script src="./components/card.js" type="module"></script>
 
 

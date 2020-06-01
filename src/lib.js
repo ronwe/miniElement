@@ -13,6 +13,7 @@ import {
 import { 
   processTag, parseTag, 
   delegateEvents, 
+  delegateSlotEvents,
   htmlEscape, 
   updatingProperty,
   processHtmlDataId, markDataIdInHtml, affectsToStr
@@ -23,7 +24,8 @@ import {
   isHackSymbol,
   isProxySymbol, 
   isSlotSymbol,
-  isMethodSymbol 
+  isMethodSymbol,
+  copySlotAttr
 } from './symbols.js';
 
 let bindedEvents = {};
@@ -64,7 +66,7 @@ export function define(tagName, custormOptioins) {
           let clonedSlot = slot.cloneNode(true);
           let clonedSlotName = slotName + '-cp' +  uuid(); 
           clonedSlot.setAttribute('slot', clonedSlotName);
-          clonedSlot.setAttribute('iscopyslot', true);
+          clonedSlot.setAttribute(copySlotAttr, slotName);
           element.appendChild(clonedSlot);
 
           return `<slot name=${clonedSlotName}></slot>`; 
@@ -97,7 +99,7 @@ export function define(tagName, custormOptioins) {
         let copySlots = element.querySelectorAll('[slot]'); 
         Array.from(copySlots).forEach( slot => {
           let slotName = slot.getAttribute('slot');
-          if (slot.getAttribute('iscopyslot') !== 'true') {
+          if (!slot.getAttribute(copySlotAttr) ) {
             return;
           }
           let slotInNew = shadow.querySelector(`slot[name="${slotName}"]`);
@@ -108,7 +110,9 @@ export function define(tagName, custormOptioins) {
         });
 
       }
+      
 
+      //更新绑定事件
       function updateBindedEvents() {
         //复制事件全局堆栈到内部堆栈， 清空全局堆栈
         let bindedEventsStack = Object.assign(bindedEvents);
@@ -124,7 +128,9 @@ export function define(tagName, custormOptioins) {
 
         updateBindedEvents();
       }
+
       doRender();
+      delegateSlotEvents(element);
     }
 
     connectedCallback() {
