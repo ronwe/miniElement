@@ -21,8 +21,7 @@
 4. slot列表循环
 
 ### API 
-
-Explain what these tests test and why
+如何编写一个组件
 
 ```
 import { define, html } from '../src/lib.js';
@@ -38,7 +37,10 @@ var demo  = {
 		} 
 	},
   render: ({property,slots, method}) => {
-		return html`<h1 @click=${method.act}>Hello, ${property.name}</h1>`;
+		return html`<h1 @click=${method.act}>
+				${property.action}, ${property.name}
+				${slots.line}
+		</h1>`;
 	}
 }
 define('me-demo', demo);
@@ -46,11 +48,11 @@ define('me-demo', demo);
 
 
 ```
-<me-demo  name="Kevin"></me-demo>
+<me-demo  name="Kevin">
+	<p slot="line">________</p>
+</me-demo>
 ```
 
 
-## License
-This project is licensed under the MIT License 
 
 
