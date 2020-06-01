@@ -196,6 +196,7 @@ export function html(strings, ...args) {
         argShouldAppend = false;	
       } else if (Detect.isFunction(argValue) && Detect.isSlot(argValue)) {
         argValue = argValue();
+        argShouldEncode = false;
 
       } else if (Detect.isFunction(argValue) && !Detect.isMethod(argValue)) {
 
@@ -224,7 +225,7 @@ export function html(strings, ...args) {
         appendAffectsToResult(argValue.affects);
 
         if (argShouldEncode) {
-          //					argValue = htmlEscape(argValue);
+          argValue = htmlEscape(argValue);
         }
         result.push(argValue);
       }
