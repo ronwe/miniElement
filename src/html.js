@@ -16,18 +16,18 @@ import {
 * 支持哪些事件绑定
 */
 const EventNames = {
-	'click': 'click'
+  'click': 'click'
 };
 
 
 function setBindedIdByFn(bindedEvents, fn) {
-	let id = uuid();
-	fn[fnSymbol] = id;
-	bindedEvents[id] = fn;
-	return id;
+  let id = uuid();
+  fn[fnSymbol] = id;
+  bindedEvents[id] = fn;
+  return id;
 }
 function getBindedIdByFn(fn) {
-	return  fn[fnSymbol];
+  return  fn[fnSymbol];
 }
 
 let dataMarkerBegin = '{%';
@@ -49,105 +49,105 @@ export function markDataIdInHtml(affects) {
 export function processHtmlDataId(content) {
   content = content.replace(`${dataMarkerEnd}--><!--${dataMarkerBegin}`, dataMarkerAny);
   let reg = new RegExp(`<!--${dataMarkerBegin}([^\>]+)${dataMarkerEnd}-->`, 'g');
-	let ret = '';
-	while (true) {
-		let pieces = reg.exec(content);
-		if (!pieces) {
-			break;
-		}
-		let [matched, dataIds] = pieces;
-		let raw = pieces.input;
-		let raw_before = raw.slice(0, pieces.index);
-		let raw_after =  raw.slice( pieces.index + matched.length);
-		
-		let tryMatchTags = raw_before.match(/(<\w+)\b/g);
-		let tryMatchTag;
-		let tagStartPos = -1;
-		if (tryMatchTags) {
-			tryMatchTag = tryMatchTags[tryMatchTags.length - 1];
-			tagStartPos = raw_before.lastIndexOf(tryMatchTag);
-		}
-		if (tagStartPos >= 0) {
-			tagStartPos = tagStartPos + tryMatchTag.length;
+  let ret = '';
+  while (true) {
+    let pieces = reg.exec(content);
+    if (!pieces) {
+      break;
+    }
+    let [matched, dataIds] = pieces;
+    let raw = pieces.input;
+    let raw_before = raw.slice(0, pieces.index);
+    let raw_after =  raw.slice( pieces.index + matched.length);
 
-			raw_before = raw_before.slice(0, tagStartPos) + ` ${dataAttrName}="${dataMarkerAny}${dataIds}${dataMarkerAny}"  ` +  raw_before.slice(tagStartPos);
-		}
+    let tryMatchTags = raw_before.match(/(<\w+)\b/g);
+    let tryMatchTag;
+    let tagStartPos = -1;
+    if (tryMatchTags) {
+      tryMatchTag = tryMatchTags[tryMatchTags.length - 1];
+      tagStartPos = raw_before.lastIndexOf(tryMatchTag);
+    }
+    if (tagStartPos >= 0) {
+      tagStartPos = tagStartPos + tryMatchTag.length;
 
-		ret += raw_before;
-		content = raw_after;
-		reg.lastIndex = 0;
-	}
-	ret += content;
-	return ret;
+      raw_before = raw_before.slice(0, tagStartPos) + ` ${dataAttrName}="${dataMarkerAny}${dataIds}${dataMarkerAny}"  ` +  raw_before.slice(tagStartPos);
+    }
+
+    ret += raw_before;
+    content = raw_after;
+    reg.lastIndex = 0;
+  }
+  ret += content;
+  return ret;
 }
 
 /*
-*处理语法标签 空格+@标示*/
+ *处理语法标签 空格+@标示*/
 export function parseTag(raw, index) {
-	let str = raw[index];
-	//从末尾查找最近空格@ 
-	let tagSymbol = ' @';
-	let tagStrIndex = str.lastIndexOf(tagSymbol);
-	let found = false;
-	if (tagStrIndex > -1) {
-		let tagDetector = str.slice(tagStrIndex);
-		//去掉引号内部分
-		tagDetector = tagDetector.replace(/('|").*\1/,'');
-		if (tagDetector.indexOf('>') === -1) {
-			let tag = str.slice(tagStrIndex + tagSymbol.length).trim();
-			return [str.slice(0, tagStrIndex), tag];
-		}
-	}	
+  let str = raw[index];
+  //从末尾查找最近空格@ 
+  let tagSymbol = ' @';
+  let tagStrIndex = str.lastIndexOf(tagSymbol);
+  let found = false;
+  if (tagStrIndex > -1) {
+    let tagDetector = str.slice(tagStrIndex);
+    //去掉引号内部分
+    tagDetector = tagDetector.replace(/('|").*\1/,'');
+      if (tagDetector.indexOf('>') === -1) {
+        let tag = str.slice(tagStrIndex + tagSymbol.length).trim();
+        return [str.slice(0, tagStrIndex), tag];
+      }
+  }	
 }
 
 /*
-*
-*/
+ *
+ */
 export function processTag(orginTagContent, value, bindedEvents) {
-	let type = orginTagContent.slice(-1);
-	let tagContent = orginTagContent.slice(0, -1).trim();
-	let tagDecorator = tagContent.match(/^(\w+)\((.*)\)$/);
-	let tagSymbol;
-	let tagDecoration; 
-	if (tagDecorator) {
-		tagSymbol = tagDecorator[1];
-		tagDecoration = tagDecorator[2];
-	} else {
-		tagSymbol = tagContent;
-	}
-	
-	switch (type) {
-		case '=':
-			//绑定事件
-			if (tagSymbol in  EventNames) {
-					let bindId = getBindedIdByFn(value);
-					if (!bindId) {
-						bindId = setBindedIdByFn(bindedEvents, value); 
-					}
-					return [tagSymbol, tagDecoration,  bindId]
-			}
-			break;
-	}
+  let type = orginTagContent.slice(-1);
+  let tagContent = orginTagContent.slice(0, -1).trim();
+  let tagDecorator = tagContent.match(/^(\w+)\((.*)\)$/);
+  let tagSymbol;
+  let tagDecoration; 
+  if (tagDecorator) {
+    tagSymbol = tagDecorator[1];
+    tagDecoration = tagDecorator[2];
+  } else {
+    tagSymbol = tagContent;
+  }
+
+  switch (type) {
+    case '=':
+      //绑定事件
+      if (tagSymbol in  EventNames) {
+        let bindId = getBindedIdByFn(value);
+        if (!bindId) {
+          bindId = setBindedIdByFn(bindedEvents, value); 
+        }
+        return [tagSymbol, tagDecoration,  bindId]
+      }
+      break;
+  }
 }
 
 /*
-* 绑定事件委托
-*/
+ * 绑定事件委托
+ */
 export function delegateEvents(root, eventsStack, options) {
-	root.addEventListener('click', function(evt) {
-		let element = evt.target;
-		let type = evt.type;
-		let bindedId = element.getAttribute('_bind_' + type);
-		if (!bindedId) {
-			return;
-		}
-	
-		let [id, decoration] = bindedId.split('.');
-		if (!id || !eventsStack[id]) {
-			return;
-		}
-		eventsStack[id].call(element, evt, options);
-	})
+  root.addEventListener('click', function(evt) {
+    let element = evt.target;
+    let type = evt.type;
+    let bindedId = element.getAttribute('_bind_' + type);
+    if (!bindedId) {
+      return;
+    }
+
+    let [id, decoration] = bindedId.split('.');
+    if (!id || !eventsStack[id]) {
+      return;
+    }
+    eventsStack[id].call(element, evt, options);
+  })
 
 }
 
@@ -164,14 +164,14 @@ export function htmlEscape(str) {
 
   }
 
-	return isNaN(str)? str.toString()
-		.replace(/&/g, '&amp;') 
-		.replace(/>/g, '&gt;')
-		.replace(/</g, '&lt;')
-		.replace(/"/g, '&quot;')
-		.replace(/'/g, '&#39;')
-		.replace(/`/g, '&#96;') 
-		: str.toString();
+  return isNaN(str)? str.toString()
+    .replace(/&/g, '&amp;') 
+    .replace(/>/g, '&gt;')
+    .replace(/</g, '&lt;')
+    .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+        .replace(/`/g, '&#96;') 
+    : str.toString();
 }
 
 /*
@@ -231,7 +231,7 @@ export function updatingProperty({shadow, updated, getHtml}) {
       if (updated) {
         updated();
       }
-      
+
     })();
   }
 }

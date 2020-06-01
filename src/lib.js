@@ -39,23 +39,27 @@ export function define(tagName, custormOptioins) {
     constructor() {
       super();
 
-			let clonedOptions = {};
-			['property', 'method'].map( name => {
-				clonedOptions[name] = custormOptioins[name] || {};
-			});
+      let clonedOptions = {};
+      ['property', 'method'].map( name => {
+        clonedOptions[name] = custormOptioins[name] || {};
+      });
       for (let methodName of Object.keys(clonedOptions.method)) {
         clonedOptions.method[methodName][isMethodSymbol] = true;
       }
-		
-			let element = this;
-			Object.keys(custormOptioins.property).forEach(propName => {
-				if (element.hasAttribute(propName)) {
-					custormOptioins.property[propName] = element.getAttribute(propName);
-				}
-			});
+
+      let element = this;
+      Object.keys(custormOptioins.property).forEach(propName => {
+        if (element.hasAttribute(propName)) {
+          custormOptioins.property[propName] = element.getAttribute(propName);
+        }
+      });
       clonedOptions.slots = {};
+
       Array.from(element.querySelectorAll('[slot]')).forEach( slot => {
         let slotName = slot.getAttribute('slot');
+        if (clonedOptions.slots[slotName]) {
+          throw new Error(`slot ${slotName} dumplicate`);
+        }
         function copySlot()  {
           let clonedSlot = slot.cloneNode(true);
           let clonedSlotName = slotName + '-cp' +  uuid(); 
@@ -68,13 +72,13 @@ export function define(tagName, custormOptioins) {
         copySlot[isSlotSymbol] = true;
         clonedOptions.slots[slotName] =  copySlot;
       });
-			
+
 
       var shadow = this.attachShadow( { mode: 'closed' } );
       let template = document.createElement('template');
 
-			//变动频繁 需要做下防抖
-			clonedOptions.property = wrapperData(
+      //变动频繁 需要做下防抖
+      clonedOptions.property = wrapperData(
         clonedOptions.property, 
         updatingProperty({
           shadow,
@@ -106,21 +110,21 @@ export function define(tagName, custormOptioins) {
       }
 
       function updateBindedEvents() {
-				//复制事件全局堆栈到内部堆栈， 清空全局堆栈
-				let bindedEventsStack = Object.assign(bindedEvents);
-				bindedEvents = {};
+        //复制事件全局堆栈到内部堆栈， 清空全局堆栈
+        let bindedEventsStack = Object.assign(bindedEvents);
+        bindedEvents = {};
 
-				//事件委托
-				delegateEvents(shadow, bindedEventsStack, clonedOptions);
+        //事件委托
+        delegateEvents(shadow, bindedEventsStack, clonedOptions);
       }
 
-			function doRender() { 
-				template.innerHTML = custormOptioins.render(clonedOptions);
-				shadow.appendChild(template.content);
+      function doRender() { 
+        template.innerHTML = custormOptioins.render(clonedOptions);
+        shadow.appendChild(template.content);
 
         updateBindedEvents();
-			}
-			doRender();
+      }
+      doRender();
     }
 
     connectedCallback() {
@@ -133,7 +137,7 @@ export function define(tagName, custormOptioins) {
 
   }
 
-	window.customElements.define(tagName, BaseElement);
+  window.customElements.define(tagName, BaseElement);
 }
 
 /*
@@ -144,33 +148,33 @@ function makeAffectsToStr(affects) {
 
 
 export function html(strings, ...args) {
-	let raw = strings.raw;
-	let result = [];
-	args.forEach( (argValue, i) => {
-		let str = raw[i];
-		let tag;
-		let parsedTag =  parseTag(raw, i);
-		let argShouldAppend = true;
-		let argShouldEncode = true;
+  let raw = strings.raw;
+  let result = [];
+  args.forEach( (argValue, i) => {
+    let str = raw[i];
+    let tag;
+    let parsedTag =  parseTag(raw, i);
+    let argShouldAppend = true;
+    let argShouldEncode = true;
 
     //绑定事件
-		if (parsedTag && Detect.isMethod(argValue)) {
-			[str, tag] = parsedTag;
-			if (tag) {
-				argShouldAppend = false;
-				let decoration,  bindId;
-				[tag, decoration,  bindId] = processTag(tag, argValue, bindedEvents);
-				str += ` _bind_${tag}=${bindId} `;
-			} else {
-				argShouldEncode = false;
-				
-			}
-		}
+    if (parsedTag && Detect.isMethod(argValue)) {
+      [str, tag] = parsedTag;
+      if (tag) {
+        argShouldAppend = false;
+        let decoration,  bindId;
+        [tag, decoration,  bindId] = processTag(tag, argValue, bindedEvents);
+        str += ` _bind_${tag}=${bindId} `;
+      } else {
+        argShouldEncode = false;
+
+      }
+    }
     if (undefined === argValue) {
       argShouldAppend = false;
     }
-		
-		result.push(str);
+
+    result.push(str);
 
     function appendAffectsToResult(affects) {
       if (affects) {
@@ -181,9 +185,9 @@ export function html(strings, ...args) {
       }
     }
 
-		if (argShouldAppend) {
+    if (argShouldAppend) {
       if (argValue[isProxySymbol]) {
-			  argShouldAppend = false;	
+        argShouldAppend = false;	
       } else if (Detect.isFunction(argValue) && Detect.isSlot(argValue)) {
         argValue = argValue();
 
@@ -202,29 +206,29 @@ export function html(strings, ...args) {
           let affects = stopRecordAffects();
           affects.forEach(appendAffectsToResult);
         }
-       // stopRecordAffects();
+        // stopRecordAffects();
       }
-		}
+    }
 
-		if (argShouldAppend) {
-			if (Detect.isArray(argValue)) {
-				argValue.forEach(item => result.push(item));
-			} else {
-				//获取数据id绑定到页面上
+    if (argShouldAppend) {
+      if (Detect.isArray(argValue)) {
+        argValue.forEach(item => result.push(item));
+      } else {
+        //获取数据id绑定到页面上
         appendAffectsToResult(argValue.affects);
 
-				if (argShouldEncode) {
-//					argValue = htmlEscape(argValue);
-				}
-				result.push(argValue);
-			}
-		}
-	});
-	result.push(raw.slice(-1)[0]);
+        if (argShouldEncode) {
+          //					argValue = htmlEscape(argValue);
+        }
+        result.push(argValue);
+      }
+    }
+  });
+  result.push(raw.slice(-1)[0]);
 
-	let content = result.join('');
-	//绑定数据节点id
-	content = processHtmlDataId(content);
-	
-	return content;
+  let content = result.join('');
+  //绑定数据节点id
+  content = processHtmlDataId(content);
+
+  return content;
 }

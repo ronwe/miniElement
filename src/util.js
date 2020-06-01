@@ -24,20 +24,20 @@ function base62(qutient) {
 }
 
 export function uuid() {
-	let seconds = Math.floor(((+new Date) - REDUCE_TIME)); 
+  let seconds = Math.floor(((+new Date) - REDUCE_TIME)); 
   let id;
-	if (seconds === uuidPrevSeconds) {
-		uuidPreix++;
-		if (uuidPreix >= 4000) {
-			uuidPreix = 0;
-		}
+  if (seconds === uuidPrevSeconds) {
+    uuidPreix++;
+    if (uuidPreix >= 4000) {
+      uuidPreix = 0;
+    }
     id = uuidPrevHash;
-	} else {
-	  id = base62(seconds);
+  } else {
+    id = base62(seconds);
     uuidPrevHash = id;
-	  uuidPrevSeconds = seconds;
+    uuidPrevSeconds = seconds;
   }
-	return ('0' + base62(uuidPreix)).slice(-2) + id;
+  return ('0' + base62(uuidPreix)).slice(-2) + id;
 }
 
 let reduceEvent;
