@@ -23,6 +23,8 @@
 ### API 
 如何编写一个组件
 
+
+编写/components/demo.js
 ```
 import { define, html } from '../src/lib.js';
 
@@ -46,11 +48,12 @@ var demo  = {
 define('me-demo', demo);
 ```
 
-
+页面html
 ```
 <me-demo  name="Kevin">
 	<p slot="line">________</p>
 </me-demo>
+<script src="./components/demo.js" type="module"></script>
 ```
 
 

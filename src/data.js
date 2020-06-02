@@ -59,18 +59,18 @@ function printAble(data) {
     return false;
   }
 }
-function proxyData(data, observer, dataMap, isArray ) {
+function proxyData(data, observers, dataMap, isArray ) {
   if (typeof data !== 'object') {
     if (!isArray && printAble(data) ){
       let affects = getDataRelection(dataMap);
       let ret = {
         value: data,
         affects,
+				[isDataSymbol]: true,
 				[Symbol.toPrimitive](hint) {
 					return this.value;
 				}
       };
-      ret[isDataSymbol] = true;
       return ret;
     } else {
       return data;
@@ -106,7 +106,7 @@ function proxyData(data, observer, dataMap, isArray ) {
         if (target[prop] && true === target[prop][isProxySymbol])  {
           return target[prop];
         } else {
-          return proxyData(target[prop], observer, dataMap, Detect.isArray(target));
+          return proxyData(target[prop], observers, dataMap, Detect.isArray(target));
         }
       } else if (prop in target) {
         if (Detect.isArray(target) && 'map' === prop) {
@@ -115,7 +115,7 @@ function proxyData(data, observer, dataMap, isArray ) {
               let targetLen = target.length;
               let mapResults = [];
               let j = 0;
-              let proxyObj = proxyData(target, observer, dataMap, Detect.isArray(target));
+              let proxyObj = proxyData(target, observers, dataMap, Detect.isArray(target));
               for (let i = 0; i < targetLen; i++) {
                 if (undefined !== target[i] && null !== target[i]) {
                   mapResults.push(cbk(proxyObj[i], j));
@@ -132,14 +132,14 @@ function proxyData(data, observer, dataMap, isArray ) {
           return target[prop];
         }
       } else {
-        //return proxyData({}, observer );
+        //return proxyData({}, observers );
         return proxyData({} );
       }
     },
      set : (target, prop, value) => {
        //console.log('set', target, prop, value);
        if (value !== target[prop]) {
-         if (observer) {
+         if (observers) {
            let oldValue = target[prop];
            let existsProp = target.hasOwnProperty(prop);
            let dataId;
@@ -160,14 +160,14 @@ function proxyData(data, observer, dataMap, isArray ) {
              }
            }
 
-           observer({
+           observers.forEach( observer => observer({
              prop, 
              newValue: value, 
              oldValue, 
              dataRoot: target,
              dataNew: pushNew,
              dataId: dataId.join(dataMarkerJoin)
-           });
+           }));
           }
           target[prop] = value;
         }
@@ -188,11 +188,12 @@ function proxyData(data, observer, dataMap, isArray ) {
 * 1 屏蔽节点缺失异常, 中间节点类型错误不处理
 * 2 绑定数据变动observe
 */
-export function wrapperData (data, observer) {
+export function wrapperData (data, ...observers) {
   if (!data) {
     return;
   }
-  return proxyData(data, observer,  new Map());
+	
+  return proxyData(data, observers,  new Map());
 }
 
 

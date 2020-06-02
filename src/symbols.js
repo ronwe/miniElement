@@ -11,3 +11,5 @@ export var copySlotAttr = 'copy-slot';
 
 export var dataMarkerAny = '_';
 export var dataMarkerJoin = '-';
+
+export var publicPropertyPrefix = 'P-';

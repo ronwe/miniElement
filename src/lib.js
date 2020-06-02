@@ -25,14 +25,26 @@ import {
   isProxySymbol, 
   isSlotSymbol,
   isMethodSymbol,
+	publicPropertyPrefix,
   copySlotAttr
 } from './symbols.js';
+
+import {
+	watchAttrChange,
+	updatingAttr
+} from './attr.js';
+
 
 let bindedEvents = {};
 
 
+export function Attr(name) {
+	return publicPropertyPrefix + name;
+}
 
 export function define(tagName, custormOptioins) {
+	let publicAttrs = [];
+
   class BaseElement extends HTMLElement {
     static get name() {
       return tagName;
@@ -41,22 +53,43 @@ export function define(tagName, custormOptioins) {
     constructor() {
       super();
 
-      let clonedOptions = {};
-      ['property', 'method'].map( name => {
-        clonedOptions[name] = custormOptioins[name] || {};
-      });
-      for (let methodName of Object.keys(clonedOptions.method)) {
+      let clonedOptions = {
+				property: {},
+				method: {},
+				slots: {}
+			};
+
+      let element = this;
+			let render = custormOptioins.render;
+
+			//引用method
+      for (let methodName of Object.keys(custormOptioins.method)) {
+				clonedOptions.method[methodName] = custormOptioins.method[methodName];
         clonedOptions.method[methodName][isMethodSymbol] = true;
       }
 
-      let element = this;
+
+			//复制property
+			let publicPropertyPrefixLen = publicPropertyPrefix.length;
       Object.keys(custormOptioins.property).forEach(propName => {
-        if (element.hasAttribute(propName)) {
-          custormOptioins.property[propName] = element.getAttribute(propName);
+				let propValue = custormOptioins.property[propName];
+				let isPublicAttr = false;
+				if (propName.startsWith(publicPropertyPrefix)) {
+					isPublicAttr = true;
+					propName = propName.slice(publicPropertyPrefixLen);
+				}
+				clonedOptions.property[propName] = propValue;
+
+        if (isPublicAttr && element.hasAttribute(propName)) {
+					publicAttrs.push(propName);
+          clonedOptions.property[propName] = element.getAttribute(propName);
         }
       });
-      clonedOptions.slots = {};
 
+
+
+
+			//slot影子方法
       Array.from(element.querySelectorAll('[slot]')).forEach( slot => {
         let slotName = slot.getAttribute('slot');
         if (clonedOptions.slots[slotName]) {
@@ -85,13 +118,18 @@ export function define(tagName, custormOptioins) {
         updatingProperty({
           shadow,
           getHtml: function () {
-            return custormOptioins.render(clonedOptions); 
+            return render(clonedOptions); 
           },
           updated: function() {
             clearUnUsedCopySlots();
             updateBindedEvents();
           }
-        })
+        }),
+				updatingAttr(
+					element, 
+					publicAttrs,
+					clonedOptions.property	
+				)
       );
 
       //清除无用slot 
@@ -122,8 +160,11 @@ export function define(tagName, custormOptioins) {
         delegateEvents(shadow, bindedEventsStack, clonedOptions);
       }
 
+			//绑定属性变化
+			watchAttrChange(element, publicAttrs, clonedOptions.property);
+
       function doRender() { 
-        template.innerHTML = custormOptioins.render(clonedOptions);
+        template.innerHTML = render(clonedOptions);
         shadow.appendChild(template.content);
 
         updateBindedEvents();
@@ -144,6 +185,10 @@ export function define(tagName, custormOptioins) {
   }
 
   window.customElements.define(tagName, BaseElement);
+
+	return {
+		publicAttrs
+	}
 }
 
 /*
@@ -213,7 +258,6 @@ export function html(strings, ...args) {
           let affects = stopRecordAffects();
           affects.forEach(appendAffectsToResult);
         }
-        // stopRecordAffects();
       }
     }
 
