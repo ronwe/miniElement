@@ -1,13 +1,13 @@
 import { 
-	Attr,
+	Public,
 	define, 
 	html
 } from '../src/lib.js';
 
 var userCard  = {
 	property: {
-		[Attr('name')]: `somebody's name`,
-		[Attr('email')]: '',
+		[Public('name')]: `somebody's name`,
+		[Public('email')]: '',
 		desc: {
 			pubtime: 1919
 		},
@@ -26,7 +26,11 @@ var userCard  = {
 				//root.property.list.push({name: 'new item ' + i});
 			}
 			root.property.list[2].name = 'updated';
+			root.event.emit('custom-event', {abc:123});
 
+		},
+		[Public('testPublic')]: function(evt) {
+			console.log(evt);
 		}
 	},
 	render: ({property,slots, method}) => {

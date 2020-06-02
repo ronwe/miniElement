@@ -34,16 +34,23 @@ import {
 	updatingAttr
 } from './attr.js';
 
+import {
+	registEventHandler,
+	registPublicMethods,
+	dispatchEvents
+} from './public.js';
+
 
 let bindedEvents = {};
 
 
-export function Attr(name) {
+export function Public(name) {
 	return publicPropertyPrefix + name;
 }
 
 export function define(tagName, custormOptioins) {
 	let publicAttrs = [];
+	let publicMethods = [];
 
   class BaseElement extends HTMLElement {
     static get name() {
@@ -56,21 +63,34 @@ export function define(tagName, custormOptioins) {
       let clonedOptions = {
 				property: {},
 				method: {},
-				slots: {}
+				slots: {},
+				event: {}
 			};
 
       let element = this;
 			let render = custormOptioins.render;
+			let publicPropertyPrefixLen = publicPropertyPrefix.length;
 
+			//注册emit on方法
+			registEventHandler(element, clonedOptions.event);
 			//引用method
       for (let methodName of Object.keys(custormOptioins.method)) {
-				clonedOptions.method[methodName] = custormOptioins.method[methodName];
+				let isPublicMethod = false;
+				let originMethodName = methodName;
+				if (methodName.startsWith(publicPropertyPrefix)) {
+					isPublicMethod = true;
+					methodName = methodName.slice(publicPropertyPrefixLen);
+					publicMethods.push(methodName);
+				}
+
+				clonedOptions.method[methodName] = custormOptioins.method[originMethodName];
         clonedOptions.method[methodName][isMethodSymbol] = true;
       }
+			//注册公共方法
+			registPublicMethods(element, publicMethods, clonedOptions.method);
 
 
 			//复制property
-			let publicPropertyPrefixLen = publicPropertyPrefix.length;
       Object.keys(custormOptioins.property).forEach(propName => {
 				let propValue = custormOptioins.property[propName];
 				let isPublicAttr = false;
@@ -160,6 +180,7 @@ export function define(tagName, custormOptioins) {
 			//绑定属性变化
 			watchAttrChange(element, publicAttrs, clonedOptions.property);
 
+
       function doRender() { 
         template.innerHTML = render(clonedOptions);
         shadow.appendChild(template.content);
@@ -172,11 +193,11 @@ export function define(tagName, custormOptioins) {
     }
 
     connectedCallback() {
-      console.log('mounted');
+			dispatchEvents(this, 'mounted');
     }
 
     disconnectedCallback() {
-      console.log('unmounted');
+			dispatchEvents(this, 'unmounted');
     }
 
   }
@@ -184,7 +205,8 @@ export function define(tagName, custormOptioins) {
   window.customElements.define(tagName, BaseElement);
 
 	return {
-		publicAttrs
+		publicAttrs,
+		publicMethods
 	}
 }
 

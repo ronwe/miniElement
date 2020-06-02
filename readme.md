@@ -28,19 +28,22 @@
 
 ```
 import { 
-	Attr,
+	Public,
 	define, 
 	html 
 } from '../src/lib.js';
 
 var demo  = {
 	property: {
-		[Attr('name')]: null, 
+		[Public('name')]: null, 
 		action: 'Hello' 
 	},
 	method: {
 		act: function(evt, root) {
 			root.property.action = 'Bye';
+		},
+		[Public('test')]: function() {
+			alert('test');
 		} 
 	},
 	render: ({property,slots, method}) => {
