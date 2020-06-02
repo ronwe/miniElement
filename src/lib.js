@@ -52,6 +52,7 @@ export function Public(name) {
 export function define(tagName, custormOptioins) {
 	let publicAttrs = [];
 	let publicMethods = [];
+	let publicEvents = Object.values(lifeCycleEvents);
 
   class BaseElement extends HTMLElement {
     static get name() {
@@ -73,7 +74,8 @@ export function define(tagName, custormOptioins) {
 			let publicPropertyPrefixLen = publicPropertyPrefix.length;
 
 			//注册emit on方法
-			registEventHandler(element, clonedOptions.event);
+			registEventHandler(element, clonedOptions.event, custormOptioins.events);
+			publicEvents = publicEvents.concat(custormOptioins.events);
 			//引用method
       for (let methodName of Object.keys(custormOptioins.method)) {
 				let isPublicMethod = false;
@@ -208,7 +210,7 @@ export function define(tagName, custormOptioins) {
 	return {
 		publicAttrs,
 		publicMethods,
-		publicEvents: Object.values(lifeCycleEvents)
+		publicEvents
 	}
 }
 

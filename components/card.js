@@ -5,6 +5,9 @@ import {
 } from '../src/lib.js';
 
 var userCard  = {
+	events: [
+		'custom'
+	],
 	property: {
 		[Public('name')]: `somebody's name`,
 		[Public('email')]: '',
@@ -26,7 +29,7 @@ var userCard  = {
 				//root.property.list.push({name: 'new item ' + i});
 			}
 			root.property.list[2].name = 'updated';
-			root.event.emit('custom-event', {abc:123});
+			root.event.custom.emit({abc:123});
 
 		},
 		[Public('testPublic')]: function(evt) {
