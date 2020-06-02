@@ -27,36 +27,40 @@
 编写/components/demo.js
 
 ```
-	import { define, html } from '../src/lib.js';
+import { 
+	Attr,
+	define, 
+	html 
+} from '../src/lib.js';
 
-	var demo  = {
-		property: {
-			name: null,
-			action: 'Hello' 
-		},
-		method: {
-			act: function(evt, root) {
-				root.property.action = 'Bye';
-			} 
-		},
-		render: ({property,slots, method}) => {
-			return html`<h1 @click=${method.act}>
-					${property.action}, ${property.name}
-					${slots.line}
-			</h1>`;
-		}
+var demo  = {
+	property: {
+		[Attr('name')]: null, 
+		action: 'Hello' 
+	},
+	method: {
+		act: function(evt, root) {
+			root.property.action = 'Bye';
+		} 
+	},
+	render: ({property,slots, method}) => {
+		return html`<h1 @click=${method.act}>
+				${property.action}, ${property.name}
+				${slots.line}
+		</h1>`;
 	}
-	define('me-demo', demo);
+}
+define('me-demo', demo);
 
 ```
 
 页面html
 
 ```
-	<me-demo  name="Kevin">
-		<p slot="line">________</p>
-	</me-demo>
-	<script src="./components/demo.js" type="module"></script>
+<me-demo  name="Kevin">
+	<p slot="line">________</p>
+</me-demo>
+<script src="./components/demo.js" type="module"></script>
 ```
 
 
