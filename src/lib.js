@@ -86,9 +86,6 @@ export function define(tagName, custormOptioins) {
         }
       });
 
-
-
-
 			//slot影子方法
       Array.from(element.querySelectorAll('[slot]')).forEach( slot => {
         let slotName = slot.getAttribute('slot');
