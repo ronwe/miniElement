@@ -16,9 +16,9 @@ import {
 /*
 * 支持哪些事件绑定
 */
-const EventNames = {
-  'click': 'click'
-};
+const EventNames = Object.assign({
+}, 
+...['click', 'change'].map( i => ({[i]: i})));
 
 
 function setBindedIdByFn(bindedEvents, fn) {
