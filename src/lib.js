@@ -20,6 +20,7 @@ import {
 } from './html.js';
 
 import { 
+	lifeCycleEvents,
   isDataSymbol,
   isHackSymbol,
   isProxySymbol, 
@@ -193,11 +194,11 @@ export function define(tagName, custormOptioins) {
     }
 
     connectedCallback() {
-			dispatchEvents(this, 'mounted');
+			dispatchEvents(this, lifeCycleEvents.mounted);
     }
 
     disconnectedCallback() {
-			dispatchEvents(this, 'unmounted');
+			dispatchEvents(this, lifeCycleEvents.unmounted);
     }
 
   }
@@ -206,7 +207,8 @@ export function define(tagName, custormOptioins) {
 
 	return {
 		publicAttrs,
-		publicMethods
+		publicMethods,
+		publicEvents: Object.values(lifeCycleEvents)
 	}
 }
 

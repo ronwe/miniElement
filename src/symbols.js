@@ -13,3 +13,8 @@ export var dataMarkerAny = '_';
 export var dataMarkerJoin = '-';
 
 export var publicPropertyPrefix = 'P-';
+
+export var lifeCycleEvents = {
+	mounted: 'mounted',
+	unmounted: 'unmounted'
+};
