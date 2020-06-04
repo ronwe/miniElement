@@ -5,6 +5,7 @@ import {
 
 import { 
   dataMarkerJoin,
+	isBlankSymbol,
   isProxySymbol, 
   isDataSymbol, 
   isMethodSymbol,
@@ -25,6 +26,38 @@ function getRelateParent(dataMap, obj) {
     relations.push(ref.dataId);
   }
   return relations;
+}
+
+
+
+export var  getRealValue = parseProxyValue;
+
+/*
+* 获取真实值，因为逻辑运算不会触发ToPrimitive
+*/
+function parseProxyValue(obj) {
+	if (obj[isBlankSymbol] === true) {
+		return undefined;
+	} else if (obj[isDataSymbol] && ('value' in obj)) {
+		//强制读取下 更新节点标记
+		obj.parent[obj.prop];
+
+		return obj.value;
+	} else {
+		return obj;
+	}
+}
+/*
+* 用于一些属性绑定
+*/
+parseProxyValue.checked = function(obj) {
+	return bindAttr(obj, 'checked');
+}
+
+function bindAttr(obj, trueString, falseString = '') {
+	return () => {
+		return parseProxyValue(obj)? trueString : falseString;
+	}
 }
 
 export function startRecordAffects() {
@@ -59,13 +92,15 @@ function printAble(data) {
     return false;
   }
 }
-function proxyData(data, observers, dataMap, isArray ) {
+function proxyData(data, observers, dataMap, {isArray, receiver, prop} = {}) {
   if (typeof data !== 'object') {
     if (!isArray && printAble(data) ){
       let affects = getDataRelection(dataMap);
       let ret = {
-        value: data,
         affects,
+				parent: receiver,
+				prop: prop,
+        value: data,
 				[isDataSymbol]: true,
 				[Symbol.toPrimitive](hint) {
 					return this.value;
@@ -86,11 +121,17 @@ function proxyData(data, observers, dataMap, isArray ) {
   }
 
   return new Proxy(data, {
-    get: (target, prop) => {
+    get: (target, prop, receiver) => {
       //console.log('get', target, prop, target.hasOwnProperty(prop));
-      if (isProxySymbol === prop) {
-        return true;
-      }
+			if (Detect.isSymbol(prop)) {
+				if (isProxySymbol === prop) {
+					return true;
+				}
+				if (isBlankSymbol === prop && target.hasOwnProperty(isBlankSymbol)) {
+					return true;
+				}
+				return;
+			}
 
       if (target.hasOwnProperty(prop)) {
         if (dataMap) {
@@ -106,7 +147,7 @@ function proxyData(data, observers, dataMap, isArray ) {
         if (target[prop] && true === target[prop][isProxySymbol])  {
           return target[prop];
         } else {
-          return proxyData(target[prop], observers, dataMap, Detect.isArray(target));
+          return proxyData(target[prop], observers, dataMap, {isArray : Detect.isArray(target), receiver , prop});
         }
       } else if (prop in target) {
         if (Detect.isArray(target) && 'map' === prop) {
@@ -115,7 +156,7 @@ function proxyData(data, observers, dataMap, isArray ) {
               let targetLen = target.length;
               let mapResults = [];
               let j = 0;
-              let proxyObj = proxyData(target, observers, dataMap, Detect.isArray(target));
+              let proxyObj = proxyData(target, observers, dataMap, {isArray: Detect.isArray(target), receiver , prop});
               for (let i = 0; i < targetLen; i++) {
                 if (undefined !== target[i] && null !== target[i]) {
                   mapResults.push(cbk(proxyObj[i], j));
@@ -133,7 +174,7 @@ function proxyData(data, observers, dataMap, isArray ) {
         }
       } else {
         //return proxyData({}, observers );
-        return proxyData({} );
+        return proxyData({[isBlankSymbol]: true} );
       }
     },
      set : (target, prop, value) => {

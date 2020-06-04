@@ -28,9 +28,10 @@
 
 ```
 import { 
-	Public,
-	define, 
-	html 
+	Public, //声明公共
+	Value,  //因为数据model被代理了，使用该方法获得真实值
+	define, //定义组件
+	html    //模版解析
 } from '../src/lib.js';
 
 var demo  = {
@@ -48,7 +49,7 @@ var demo  = {
 	},
 	render: ({property,slots, method}) => {
 		return html`<h1 @click=${method.act}>
-				${property.action}, ${property.name}
+				${property.action}, ${Value(property.name)}
 				${slots.line}
 		</h1>`;
 	}

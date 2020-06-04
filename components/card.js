@@ -1,5 +1,6 @@
 import { 
 	Public,
+	Value,
 	define, 
 	html
 } from '../src/lib.js';
@@ -15,9 +16,9 @@ var userCard  = {
 			pubtime: 1919
 		},
 		list: [
-			{name: '<i>'},
+			{name: '<i>', checked: true},
 			{name: 'hello'},
-			{name: 'world'}
+			{name: 'world', checked: false}
 		]
 	},
 	method: {
@@ -29,6 +30,7 @@ var userCard  = {
 				//root.property.list.push({name: 'new item ' + i});
 			}
 			root.property.list[2].name = 'updated';
+			root.property.list[0].checked = false;
 			root.event.custom.emit({abc:123});
 
 		},
@@ -52,7 +54,7 @@ var userCard  = {
 			<ul>
 				${property.list.map( (book) => {
 					return html`<li @click=${method.testClick}>${book.name}
-							 <input type=checkbox />
+							 <input type=checkbox ${Value.checked(book.checked)} />
 							<slot name="list-icon"></slot>
 							${slots['list-icon']}
 						</li>`;
