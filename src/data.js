@@ -50,8 +50,8 @@ function parseProxyValue(obj) {
 /*
 * 用于一些属性绑定
 */
-parseProxyValue.checked = function(obj) {
-	return bindAttr(obj, 'checked');
+parseProxyValue.checked = function(obj, trueString) {
+	return bindAttr(obj, trueString || 'checked');
 }
 
 function bindAttr(obj, trueString, falseString = '') {

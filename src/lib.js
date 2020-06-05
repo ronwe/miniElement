@@ -281,7 +281,6 @@ export function html(strings, ...args) {
         if (cellectingAffects) {
           cellectingAffects = false;
           let affects = stopRecordAffects();
-					console.log('affects', affects);
           affects.forEach(appendAffectsToResult);
         }
       }

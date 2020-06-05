@@ -28,7 +28,7 @@ export function uuid() {
   let id;
   if (seconds === uuidPrevSeconds) {
     uuidPreix++;
-    if (uuidPreix >= 4000) {
+    if (uuidPreix >= 3700) {
       uuidPreix = 0;
     }
     id = uuidPrevHash;
