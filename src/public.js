@@ -19,7 +19,7 @@ export function dispatchEvents(element, type, options) {
 
 /*
 *注册事件句柄*/
-export function registEventHandler(element, obj, events) {
+export function registEventHandler(element, obj, events = []) {
   function emit (type, detail, opts) {
     let newOpts = Object.assign({detail}, opts);
     dispatchEvents(element, type, newOpts);

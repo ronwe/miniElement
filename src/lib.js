@@ -96,7 +96,7 @@ export function define(tagName, custormOptioins) {
 
 
 			//复制property
-      Object.keys(custormOptioins.property).forEach(propName => {
+      Object.keys(custormOptioins.property || {}).forEach(propName => {
 				let propValue = custormOptioins.property[propName];
 				let isPublicAttr = false;
 				if (propName.startsWith(publicPropertyPrefix)) {

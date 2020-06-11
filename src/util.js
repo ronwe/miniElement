@@ -8,7 +8,8 @@ import {
 let REDUCE_TIME = +new Date - Math.ceil(Math.random() * 1000); 
 let uuidPrevSeconds;
 let uuidPrevHash;
-let uuidPreix = 0;
+let uuidPrefix = 0;
+let uuidPrefixMax = Math.pow(62, 3);
 
 let BASE_CHARS = Array.from('0123456789abcdefghigklmnopqrstuvwxyzABCDEFGHIGKLMNOPQRSTUVWXYZ');
 let BASE_LEN = BASE_CHARS.length;
@@ -27,9 +28,9 @@ export function uuid() {
   let seconds = Math.floor(((+new Date) - REDUCE_TIME)); 
   let id;
   if (seconds === uuidPrevSeconds) {
-    uuidPreix++;
-    if (uuidPreix >= 3700) {
-      uuidPreix = 0;
+    uuidPrefix++;
+    if (uuidPrefix >= uuidPrefixMax) {
+      uuidPrefix = 0;
     }
     id = uuidPrevHash;
   } else {
@@ -37,7 +38,7 @@ export function uuid() {
     uuidPrevHash = id;
     uuidPrevSeconds = seconds;
   }
-  return ('0' + base62(uuidPreix)).slice(-2) + id;
+  return ('000' + base62(uuidPrefix)).slice(-3) + id;
 }
 
 let reduceEvent;
