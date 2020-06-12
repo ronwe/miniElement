@@ -38,6 +38,15 @@ var userCard  = {
 			console.log(evt);
 		}
 	},
+	onInit: function(root) {
+    console.log('>>> init', root);		
+	},
+	onMount: function(root) {
+    console.log('>>> mount ', root);		
+	},
+  onUnMount: function(root) {
+    console.log('unmount', root); 
+  },
 	render: ({property,slots, method}) => {
 		return html`
 		<style></style>

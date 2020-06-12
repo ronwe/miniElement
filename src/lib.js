@@ -55,6 +55,7 @@ export function define(tagName, custormOptioins) {
 	let publicAttrs = [];
 	let publicMethods = [];
 	let publicEvents = Object.values(lifeCycleEvents);
+  let onUnMount;
 
   class BaseElement extends HTMLElement {
     static get name() {
@@ -193,8 +194,17 @@ export function define(tagName, custormOptioins) {
         updateBindedEvents();
       }
 
+      if (custormOptioins.onInit) {
+        custormOptioins.onInit(clonedOptions);
+      }
       doRender();
+
       delegateSlotEvents(element);
+
+      if (custormOptioins.onMount) {
+        custormOptioins.onMount(clonedOptions);
+      }
+      onUnMount = custormOptioins.onUnMount.bind(element, clonedOptions);
     }
 
     connectedCallback() {
@@ -203,6 +213,9 @@ export function define(tagName, custormOptioins) {
 
     disconnectedCallback() {
 			dispatchEvents(this, lifeCycleEvents.unmounted);
+      if (onUnMount) {
+        onUnMount();
+      }
     }
 
   }
