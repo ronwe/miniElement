@@ -38,7 +38,7 @@ var userCard  = {
 			console.log(evt);
 		}
 	},
-	onInit: function(root) {
+	onInit: async  function(root) {
     console.log('>>> init', root);		
 	},
 	onMount: function(root) {

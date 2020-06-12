@@ -77,10 +77,10 @@ export function define(tagName, custormOptioins) {
 			let publicPropertyPrefixLen = publicPropertyPrefix.length;
 
 			//注册emit on方法
-			registEventHandler(element, clonedOptions.event, custormOptioins.events);
+			registEventHandler(element, clonedOptions.event, custormOptioins.events || []);
 			publicEvents = publicEvents.concat(custormOptioins.events);
 			//引用method
-      for (let methodName of Object.keys(custormOptioins.method)) {
+      for (let methodName of Object.keys(custormOptioins.method || {})) {
 				let isPublicMethod = false;
 				let originMethodName = methodName;
 				if (methodName.startsWith(publicPropertyPrefix)) {
@@ -194,16 +194,19 @@ export function define(tagName, custormOptioins) {
         updateBindedEvents();
       }
 
-      if (custormOptioins.onInit) {
-        custormOptioins.onInit(clonedOptions);
-      }
-      doRender();
+      (async () => {
+        if (custormOptioins.onInit) {
+          await custormOptioins.onInit(clonedOptions);
+        }
 
-      delegateSlotEvents(element);
+        doRender();
 
-      if (custormOptioins.onMount) {
-        custormOptioins.onMount(clonedOptions);
-      }
+        delegateSlotEvents(element);
+
+        if (custormOptioins.onMount) {
+          await custormOptioins.onMount(clonedOptions);
+        }
+      })();
       onUnMount = custormOptioins.onUnMount.bind(element, clonedOptions);
     }
 
