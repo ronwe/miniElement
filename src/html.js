@@ -209,13 +209,16 @@ export function htmlEscape(str) {
 /*
  * 记录变化id，更新dom
  */
-export function updatingProperty({shadow, updated, getHtml}) {
+export function updatingProperty({shadow, updated, getHtml, domShouldUpdate}) {
   let propertyStack = [];
   return function({dataId, dataNew}) {
     if (!propertyStack.some(([id]) => id=== dataId)) {
       propertyStack.push([dataId, dataNew]);
     }
     debounce(() => {
+      if (domShouldUpdate && !domShouldUpdate()) {
+        return;
+      }
       let changedProperty = propertyStack.slice();
       propertyStack.length = 0;
 

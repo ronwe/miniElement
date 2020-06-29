@@ -64,6 +64,7 @@ export function define(tagName, custormOptioins) {
 
     constructor() {
       super();
+      let _rendered = false;
 
       let clonedOptions = {
 				property: {},
@@ -140,6 +141,9 @@ export function define(tagName, custormOptioins) {
         clonedOptions.property, 
         updatingProperty({
           shadow,
+          domShouldUpdate: function() {
+            return _rendered;
+          },
           getHtml: function () {
             return render(clonedOptions); 
           },
@@ -191,6 +195,7 @@ export function define(tagName, custormOptioins) {
         template.innerHTML = render(clonedOptions);
         shadow.appendChild(template.content);
 
+        _rendered = true;
         updateBindedEvents();
       }
 
@@ -207,7 +212,10 @@ export function define(tagName, custormOptioins) {
           await custormOptioins.onMount(clonedOptions);
         }
       })();
-      onUnMount = custormOptioins.onUnMount.bind(element, clonedOptions);
+
+      if (custormOptioins.onUnMount) {
+        onUnMount = custormOptioins.onUnMount.bind(element, clonedOptions);
+      }
     }
 
     connectedCallback() {

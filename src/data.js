@@ -186,6 +186,7 @@ function proxyData(data, observers, dataMap, {isArray, receiver, prop} = {}) {
            let dataId;
            let pushNew;
            if (dataMap) {
+              updateDataMap(target);
              if (Detect.isArray(target) ){
                if ('length' === prop ) { 
                 pushNew = value - target.length;
