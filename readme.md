@@ -40,8 +40,8 @@ var demo  = {
 		action: 'Hello' 
 	},
 	method: {
-		act: function(evt, root) {
-			root.property.action = 'Bye';
+		act: function({evt, property}) {
+			property.action = 'Bye';
 		},
 		[Public('test')]: function() {
 			alert('test');

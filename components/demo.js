@@ -9,6 +9,16 @@ var userDemo  = {
 	property: {
 		list: []
 	},
+  method: {
+    select: function({evt, action}) {
+      action.select(evt.target.value);
+    }
+  },
+  action: {
+    select: function(selected) {
+      console.log(selected);
+    }
+  },
 	onInit: async  function({property}) {
     property.list = [1, 2];
 	},
@@ -22,11 +32,12 @@ var userDemo  = {
 		return html`
 
 		<div class="container">
-			<ul>
+			<select @change=${method.select}>
+        <option/>
 				${property.list.map( (i) => {
-					return html`<li >${i}</li>`;
+					return html`<option > ${i}</option>`;
 				})}
-			</ul>
+			</select>
 		</div>`
 
 	}

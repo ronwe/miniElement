@@ -22,16 +22,16 @@ var userCard  = {
 		]
 	},
 	method: {
-		testClick: function(evt, root) {
+		testClick: function({evt, property}) {
 			//console.log(this, evt );
-			root.property.name = 'jack';
+			property.name = 'jack';
 			let i = 10;
 			while (i--) {
 				//root.property.list.push({name: 'new item ' + i});
 			}
-			root.property.list[2].name = 'updated';
-			root.property.list[0].checked = false;
-			root.event.custom.emit({abc:123});
+			property.list[2].name = 'updated';
+			property.list[0].checked = false;
+			event.custom.emit({abc:123});
 
 		},
 		[Public('testPublic')]: function(evt) {

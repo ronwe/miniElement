@@ -69,6 +69,7 @@ export function define(tagName, custormOptioins) {
       let clonedOptions = {
 				property: {},
 				method: {},
+        action: {},
 				slots: {},
 				event: {}
 			};
@@ -96,6 +97,8 @@ export function define(tagName, custormOptioins) {
 			//注册公共方法
 			registPublicMethods(element, publicMethods, clonedOptions.method);
 
+      //公共方法抽象到action
+      clonedOptions.action = custormOptioins.action;
 
 			//复制property
       Object.keys(custormOptioins.property || {}).forEach(propName => {
