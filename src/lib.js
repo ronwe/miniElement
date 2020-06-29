@@ -98,7 +98,9 @@ export function define(tagName, custormOptioins) {
 			registPublicMethods(element, publicMethods, clonedOptions.method);
 
       //公共方法抽象到action
-      clonedOptions.action = custormOptioins.action;
+      for (let actionName of Object.keys(custormOptioins.action || {})) {
+        clonedOptions.action[actionName] = custormOptioins.action[actionName].bind(clonedOptions);
+      }
 
 			//复制property
       Object.keys(custormOptioins.property || {}).forEach(propName => {

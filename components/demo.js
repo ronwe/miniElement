@@ -16,7 +16,7 @@ var userDemo  = {
   },
   action: {
     select: function(selected) {
-      console.log(selected);
+      console.log(selected, this);
     }
   },
 	onInit: async  function({property}) {
