@@ -16,11 +16,11 @@ var userDemo  = {
   },
   action: {
     select: function(selected) {
-      console.log(selected, this);
+      console.log(selected, Value.raw(this.property.list[selected]) );
     }
   },
 	onInit: async  function({property}) {
-    property.list = [1, 2];
+    property.list = [{name: 'a'}, {name: 'b'}];
 	},
 	onMount: function(root) {
     console.log('>>> mount ', root);		
@@ -34,8 +34,8 @@ var userDemo  = {
 		<div class="container">
 			<select @change=${method.select}>
         <option/>
-				${property.list.map( (i) => {
-					return html`<option > ${i}</option>`;
+				${property.list.map( (m, i) => {
+					return html`<option value=${i}> ${m.name}</option>`;
 				})}
 			</select>
 		</div>`

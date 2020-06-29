@@ -4,6 +4,7 @@ import {
 } from './util.js';
 
 import { 
+  getRawSymbol,
   dataMarkerJoin,
 	isBlankSymbol,
   isProxySymbol, 
@@ -52,6 +53,9 @@ function parseProxyValue(obj) {
 */
 parseProxyValue.checked = function(obj, trueString) {
 	return bindAttr(obj, trueString || 'checked');
+}
+parseProxyValue.raw = function(obj) {
+  return obj[getRawSymbol];
 }
 
 function bindAttr(obj, trueString, falseString = '') {
@@ -130,6 +134,9 @@ function proxyData(data, observers, dataMap, {isArray, receiver, prop} = {}) {
 				if (isBlankSymbol === prop && target.hasOwnProperty(isBlankSymbol)) {
 					return true;
 				}
+        if (getRawSymbol === prop) {
+          return target;
+        }
 				return;
 			}
 

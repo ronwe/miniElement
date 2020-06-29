@@ -6,6 +6,8 @@ export var isBlankSymbol = Symbol('blank');
 
 export var isHackSymbol = Symbol('method');
 
+export var getRawSymbol = Symbol('raw');
+
 export var fnSymbol = Symbol('bid');
 
 export var copySlotAttr = 'copy-slot';
