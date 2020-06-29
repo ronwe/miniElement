@@ -167,6 +167,8 @@ export function delegateSlotEvents(rootElement) {
  */
 export function delegateEvents(root, eventsStack, options) {
   function eventHandler(evt) {
+    evt.stopPropagation();
+    evt.preventDefault();
     let element = evt.target;
     let type = evt.type;
     let bindedId = element.getAttribute('_bind_' + type);

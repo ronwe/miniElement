@@ -6,7 +6,7 @@ import {
 } from '../src/lib.js';
 
 var userCard  = {
-	events: [
+	event: [
 		'custom'
 	],
 	property: {

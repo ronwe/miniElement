@@ -79,8 +79,8 @@ export function define(tagName, custormOptioins) {
 			let publicPropertyPrefixLen = publicPropertyPrefix.length;
 
 			//注册emit on方法
-			registEventHandler(element, clonedOptions.event, custormOptioins.events || []);
-			publicEvents = publicEvents.concat(custormOptioins.events);
+			registEventHandler(element, clonedOptions.event, custormOptioins.event || []);
+			publicEvents = publicEvents.concat(custormOptioins.event);
 			//引用method
       for (let methodName of Object.keys(custormOptioins.method || {})) {
 				let isPublicMethod = false;
