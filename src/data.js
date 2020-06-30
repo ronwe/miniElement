@@ -55,7 +55,7 @@ parseProxyValue.checked = function(obj, trueString) {
 	return bindAttr(obj, trueString || 'checked');
 }
 parseProxyValue.raw = function(obj) {
-  return obj[getRawSymbol];
+  return parseProxyValue(obj[getRawSymbol]);
 }
 
 function bindAttr(obj, trueString, falseString = '') {
