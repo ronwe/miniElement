@@ -274,6 +274,9 @@ export function html(strings, ...args) {
         argShouldEncode = false;
 
       }
+    } else if (str.slice(-1) === '$') {
+      str = str.slice(0, -2);
+      argShouldEncode = false;
     }
     if (undefined === argValue) {
       argShouldAppend = false;

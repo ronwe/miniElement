@@ -22,8 +22,7 @@ var userCard  = {
 		]
 	},
 	method: {
-		testClick: function({evt, property}) {
-			//console.log(this, evt );
+		testClick: function({evt, event,property}) {
 			property.name = 'jack';
 			let i = 10;
 			while (i--) {
@@ -53,7 +52,7 @@ var userCard  = {
 
 		<div class="container">
 			<p class="name" @click=${method.testClick}> ${property.name} </p>
-			<p class="email"> <input value=" @${property.email}"/>  </p>
+			<p class="email"> <input value=" @${property.email}"/>  $${property.email}</p>
 			<p class="desc"> 描述: ${`[${property.desc.pubtime}]${property.name}`} </p>
 			<p class="desc"> 
 				描述: 
