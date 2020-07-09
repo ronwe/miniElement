@@ -180,7 +180,7 @@ export function delegateEvents(root, eventsStack, options) {
     if (!id || !eventsStack[id]) {
       return;
     }
-    eventsStack[id].call(element, Object.assign({evt}, options));
+    eventsStack[id].call(element, evt, Object.assign({}, options));
   }
   bindAllDeletgate(root, eventHandler);
 }

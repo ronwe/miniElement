@@ -22,7 +22,7 @@ var userCard  = {
 		]
 	},
 	method: {
-		testClick: function({evt, event,property}) {
+		testClick: function(evt, {event,property}) {
 			property.name = 'jack';
 			let i = 10;
 			while (i--) {

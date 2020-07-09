@@ -10,7 +10,7 @@ var userDemo  = {
 		list: []
 	},
   method: {
-    select: function({evt, action}) {
+    select: function(evt, {action}) {
       action.select(evt.target.value);
     }
   },
