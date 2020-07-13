@@ -105,6 +105,7 @@ function proxyData(data, observers, dataMap, {isArray, receiver, prop} = {}) {
 				parent: receiver,
 				prop: prop,
         value: data,
+        [getRawSymbol]: data,
 				[isDataSymbol]: true,
 				[Symbol.toPrimitive](hint) {
 					return this.value;

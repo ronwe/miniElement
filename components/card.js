@@ -42,6 +42,7 @@ var userCard  = {
 	},
 	onMount: function(root) {
     console.log('>>> mount ', root);		
+    console.log(Value.raw(root.property.list[0].name));
 	},
   onUnMount: function(root) {
     console.log('unmount', root); 
