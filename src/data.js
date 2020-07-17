@@ -127,7 +127,7 @@ function proxyData(data, observers, dataMap, {isArray, receiver, prop} = {}) {
 
   return new Proxy(data, {
     get: (target, prop, receiver) => {
-      //console.log('get', target, prop, target.hasOwnProperty(prop));
+      //console.log('>>get>>', prop, target, target.hasOwnProperty(prop));
 			if (Detect.isSymbol(prop)) {
 				if (isProxySymbol === prop) {
 					return true;
@@ -155,7 +155,8 @@ function proxyData(data, observers, dataMap, {isArray, receiver, prop} = {}) {
         if (target[prop] && true === target[prop][isProxySymbol])  {
           return target[prop];
         } else {
-          return proxyData(target[prop], observers, dataMap, {isArray : Detect.isArray(target), receiver , prop});
+          //return proxyData(target[prop], observers, dataMap, {isArray : Detect.isArray(target), receiver , prop});
+          return proxyData(target[prop], observers, dataMap, {isArray : false, receiver , prop});
         }
       } else if (prop in target) {
         if (Detect.isArray(target) && 'map' === prop) {
@@ -186,7 +187,7 @@ function proxyData(data, observers, dataMap, {isArray, receiver, prop} = {}) {
       }
     },
      set : (target, prop, value) => {
-       //console.log('set', target, prop, value);
+       ///console.log('set', target, prop, value);
        if (value !== target[prop]) {
          if (observers) {
            let oldValue = target[prop];
@@ -205,6 +206,8 @@ function proxyData(data, observers, dataMap, {isArray, receiver, prop} = {}) {
              }
              if (existsProp && printAble(target[prop])) {
                dataId = [prop].concat(getRelateParent(dataMap, target));
+             } else if (existsProp && Detect.isArray(target[prop])) {
+               dataId = [].concat(getRelateParent(dataMap, target[prop]));
              } else {
                dataId = [].concat(getRelateParent(dataMap, target));
              }
@@ -219,7 +222,11 @@ function proxyData(data, observers, dataMap, {isArray, receiver, prop} = {}) {
              dataId: dataId.join(dataMarkerJoin)
            }));
           }
-          target[prop] = value;
+          if (Detect.isArray(target[prop]) && Detect.isArray(value)) {
+            target[prop].splice(0, target[prop].length, ...value);
+          } else {
+            target[prop] = value;
+          }
         }
         return true;
      },
