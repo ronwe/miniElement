@@ -53,7 +53,7 @@ var userCard  = {
 		<style></style>
 
 		<div class="container">
-			<p class="name" @click=${method.testClick}> ${property.name} </p>
+			<p class="name" @click=${method.testClickNotExists}> ${property.name} </p>
 			<p class="email"> <input value=" @${property.email}"/>  $${property.email}</p>
 			<p class="desc"> 描述: ${`[${property.desc.pubtime}]${property.name}`} </p>
 			<p class="desc"> 
