@@ -187,7 +187,6 @@ function proxyData(data, observers, dataMap, {isArray, receiver, prop} = {}) {
       }
     },
      set : (target, prop, value) => {
-       ///console.log('set', target, prop, value);
        if (value !== target[prop]) {
          if (observers) {
            let oldValue = target[prop];
@@ -207,6 +206,7 @@ function proxyData(data, observers, dataMap, {isArray, receiver, prop} = {}) {
              if (existsProp && printAble(target[prop])) {
                dataId = [prop].concat(getRelateParent(dataMap, target));
              } else if (existsProp && Detect.isArray(target[prop])) {
+               updateDataMap(target[prop]);
                dataId = [].concat(getRelateParent(dataMap, target[prop]));
              } else {
                dataId = [].concat(getRelateParent(dataMap, target));

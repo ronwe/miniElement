@@ -17,14 +17,16 @@ var userCard  = {
       3
     ]
 	},
+  onInit: ({property }) => {
+    property.ul = [4];
+  },
 	method: {
 		testClick: function(evt, {event,property}) {
 			property.name = 'jack';
-      //property.ul = [
-      //  4,
-      //  5
-      //];
-      property.ul[0] = 4;
+      property.ul = [
+        4,
+        5
+      ];
 
 		}
 	},
