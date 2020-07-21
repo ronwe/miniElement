@@ -15,10 +15,14 @@ var userCard  = {
       1,
       2,
       3
-    ]
+    ],
+    obj: {
+      a: 1
+    }
 	},
   onInit: ({property }) => {
     console.log(property.ul.indexOf(2));
+    console.log(property.ul.indexOf(property.obj.a));
     //property.ul = [4];
   },
 	method: {

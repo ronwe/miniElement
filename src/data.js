@@ -105,6 +105,9 @@ function proxyData(data, observers, dataMap, {isArray, receiver, prop} = {}) {
 				parent: receiver,
 				prop: prop,
         value: data,
+        toString(radix) {
+					return this.value.toString(radix);
+        },
         [getRawSymbol]: data,
 				[isDataSymbol]: true,
 				[Symbol.toPrimitive](hint) {
@@ -180,7 +183,7 @@ function proxyData(data, observers, dataMap, {isArray, receiver, prop} = {}) {
           }
         } else if (Detect.isArray(target) && Detect.isFunction(target[prop])) {
           return function(...args) {
-            return target[prop].apply(target, args);
+            return target[prop].apply(target, args.map(arg => parseProxyValue(arg)));
           }
         } else {
           return target[prop];
