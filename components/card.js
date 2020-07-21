@@ -18,7 +18,8 @@ var userCard  = {
     ]
 	},
   onInit: ({property }) => {
-    property.ul = [4];
+    console.log(property.ul.indexOf(2));
+    //property.ul = [4];
   },
 	method: {
 		testClick: function(evt, {event,property}) {

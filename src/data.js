@@ -178,6 +178,10 @@ function proxyData(data, observers, dataMap, {isArray, receiver, prop} = {}) {
             hackedFn.affects  = getRelateParent(dataMap, target);
             return hackedFn;
           }
+        } else if (Detect.isArray(target) && Detect.isFunction(target[prop])) {
+          return function(...args) {
+            return target[prop].apply(target, args);
+          }
         } else {
           return target[prop];
         }
@@ -186,50 +190,50 @@ function proxyData(data, observers, dataMap, {isArray, receiver, prop} = {}) {
         return proxyData({[isBlankSymbol]: true} );
       }
     },
-     set : (target, prop, value) => {
-       if (value !== target[prop]) {
-         if (observers) {
-           let oldValue = target[prop];
-           let existsProp = target.hasOwnProperty(prop);
-           let dataId;
-           let pushNew;
-           if (dataMap) {
-              updateDataMap(target);
-             if (Detect.isArray(target) ){
-               if ('length' === prop ) { 
+    set : (target, prop, value) => {
+      if (value !== target[prop]) {
+        if (observers) {
+          let oldValue = target[prop];
+          let existsProp = target.hasOwnProperty(prop);
+          let dataId;
+          let pushNew;
+          if (dataMap) {
+            updateDataMap(target);
+            if (Detect.isArray(target) ){
+              if ('length' === prop ) { 
                 pushNew = value - target.length;
-               } else if (Detect.isNumber(prop) && !target.hasOwnProperty(prop)) {
+              } else if (Detect.isNumber(prop) && !target.hasOwnProperty(prop)) {
                 pushNew = prop  - ( target.length - 1);
-               }
-               //console.log('pushNew', pushNew);
-             }
-             if (existsProp && printAble(target[prop])) {
-               dataId = [prop].concat(getRelateParent(dataMap, target));
-             } else if (existsProp && Detect.isArray(target[prop])) {
-               updateDataMap(target[prop]);
-               dataId = [].concat(getRelateParent(dataMap, target[prop]));
-             } else {
-               dataId = [].concat(getRelateParent(dataMap, target));
-             }
-           }
+              }
+              //console.log('pushNew', pushNew);
+            }
+            if (existsProp && printAble(target[prop])) {
+              dataId = [prop].concat(getRelateParent(dataMap, target));
+            } else if (existsProp && Detect.isArray(target[prop])) {
+              updateDataMap(target[prop]);
+              dataId = [].concat(getRelateParent(dataMap, target[prop]));
+            } else {
+              dataId = [].concat(getRelateParent(dataMap, target));
+            }
+          }
 
-           observers.forEach( observer => observer({
-             prop, 
-             newValue: value, 
-             oldValue, 
-             dataRoot: target,
-             dataNew: pushNew,
-             dataId: dataId.join(dataMarkerJoin)
-           }));
-          }
-          if (Detect.isArray(target[prop]) && Detect.isArray(value)) {
-            target[prop].splice(0, target[prop].length, ...value);
-          } else {
-            target[prop] = value;
-          }
+          observers.forEach( observer => observer({
+            prop, 
+            newValue: value, 
+            oldValue, 
+            dataRoot: target,
+            dataNew: pushNew,
+            dataId: dataId.join(dataMarkerJoin)
+          }));
         }
-        return true;
-     },
+        if (Detect.isArray(target[prop]) && Detect.isArray(value)) {
+          target[prop].splice(0, target[prop].length, ...value);
+        } else {
+          target[prop] = value;
+        }
+      }
+      return true;
+    },
      deleteProperty: (target, prop) => {
        console.log('delete...', target, prop);
        if (prop in target) {

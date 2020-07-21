@@ -49,6 +49,7 @@ var userCard  = {
     console.log('unmount', root); 
   },
 	render: ({property,slots, method}) => {
+    console.log('render', 'TOM' == property.name);
 		return html`
 		<style></style>
 
