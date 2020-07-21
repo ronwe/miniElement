@@ -192,10 +192,13 @@ function proxyData(data, observers, dataMap, {isArray, receiver, prop} = {}) {
               let oldValue = target.slice();
               target[prop].apply(target, args.map(arg => parseProxyValue(arg)));
               let value = target.slice();
-              let pushNew = value.length - oldValue.length;
+              let pushNew = 0;
+              if (['push', 'pop'].includes(prop)) {
+                pushNew = value.length - oldValue.length;
+              }
               let dataId = [].concat(getRelateParent(dataMap, target));
 
-              triggerObserver(target, prop, oldValue, value, pushNew, dataId);
+              triggerObserver(target, prop, oldValue, value, pushNew , dataId);
               return target;
             }
           } else {

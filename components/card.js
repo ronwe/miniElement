@@ -28,7 +28,7 @@ var userCard  = {
 		testClick: function(evt, {event,property}) {
 			//property.name = 'jack';
       property.ul.splice(0,1);
-
+      console.log(property.ul.toString());
 		}
 	},
   onUnMount: function(root) {
