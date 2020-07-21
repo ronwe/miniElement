@@ -21,13 +21,13 @@ var userCard  = {
     }
 	},
   onInit: ({property }) => {
-    console.log(property.ul.indexOf(2));
-    property.name = property.name.replace(property.obj.a, '');
+    //console.log(property.ul.indexOf(2));
+    //property.name = property.name.replace(property.obj.a, '');
   },
 	method: {
 		testClick: function(evt, {event,property}) {
 			//property.name = 'jack';
-      property.ul.splice(1,1);
+      property.ul.splice(0,1);
 
 		}
 	},

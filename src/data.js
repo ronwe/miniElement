@@ -135,7 +135,7 @@ function proxyData(data, observers, dataMap, {isArray, receiver, prop} = {}) {
 
   return new Proxy(data, {
     get: (target, prop, receiver) => {
-      //console.log('>>get>>', prop, target, target.hasOwnProperty(prop));
+      //console.log('$get', prop, target, target.hasOwnProperty(prop));
 			if (Detect.isSymbol(prop)) {
 				if (isProxySymbol === prop) {
 					return true;
@@ -186,9 +186,22 @@ function proxyData(data, observers, dataMap, {isArray, receiver, prop} = {}) {
             hackedFn.affects  = getRelateParent(dataMap, target);
             return hackedFn;
           }
-        } else if (Detect.isArray(target) && !['splice','push','pop','shift','unshift'].includes(prop) && Detect.isFunction(target[prop])) {
-          return function(...args) {
-            return target[prop].apply(target, args.map(arg => parseProxyValue(arg)));
+        } else if (Detect.isArray(target) && Detect.isFunction(target[prop])) {
+          if (['splice','push','pop','shift','unshift'].includes(prop)) {
+            return function(...args) {
+              let oldValue = target.slice();
+              target[prop].apply(target, args.map(arg => parseProxyValue(arg)));
+              let value = target.slice();
+              let pushNew = value.length - oldValue.length;
+              let dataId = [].concat(getRelateParent(dataMap, target));
+
+              triggerObserver(target, prop, oldValue, value, pushNew, dataId);
+              return target;
+            }
+          } else {
+            return function(...args) {
+              return target[prop].apply(target, args.map(arg => parseProxyValue(arg)));
+            }
           }
         } else {
           return target[prop];
@@ -226,14 +239,7 @@ function proxyData(data, observers, dataMap, {isArray, receiver, prop} = {}) {
             }
           }
 
-          observers.forEach( observer => observer({
-            prop, 
-            newValue: value, 
-            oldValue, 
-            dataRoot: target,
-            dataNew: pushNew,
-            dataId: dataId.join(dataMarkerJoin)
-          }));
+          triggerObserver(target, prop, oldValue, value, pushNew, dataId);
         }
         if (Detect.isArray(target[prop]) && Detect.isArray(value)) {
           target[prop].splice(0, target[prop].length, ...value);
@@ -243,15 +249,27 @@ function proxyData(data, observers, dataMap, {isArray, receiver, prop} = {}) {
       }
       return true;
     },
-     deleteProperty: (target, prop) => {
-       console.log('delete...', target, prop);
-       if (prop in target) {
-         delete target[prop];
-       }
-       return true;
+    deleteProperty: (target, prop) => {
+      console.log('delete...', target.toString(), prop);
+      if (prop in target) {
+        delete target[prop];
+      }
+      return true;
 
-     }
+    }
   })
+
+
+  function triggerObserver(target, prop, oldValue, value, pushNew, dataId) {
+      observers.forEach( observer => observer({
+        prop, 
+        newValue: value, 
+        oldValue, 
+        dataRoot: target,
+        dataNew: pushNew,
+        dataId: dataId.join(dataMarkerJoin)
+      }));
+  }
 }
 /*
 * 包装数据，作用两点：
