@@ -17,21 +17,17 @@ var userCard  = {
       3
     ],
     obj: {
-      a: 1
+      a: 'T' 
     }
 	},
   onInit: ({property }) => {
     console.log(property.ul.indexOf(2));
-    console.log(property.ul.indexOf(property.obj.a));
-    //property.ul = [4];
+    property.name = property.name.replace(property.obj.a, '');
   },
 	method: {
 		testClick: function(evt, {event,property}) {
-			property.name = 'jack';
-      property.ul = [
-        4,
-        5
-      ];
+			//property.name = 'jack';
+      property.ul.splice(1,1);
 
 		}
 	},

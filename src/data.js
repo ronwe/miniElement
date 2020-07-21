@@ -96,24 +96,29 @@ function printAble(data) {
     return false;
   }
 }
+let proxyPrototype = {
+  toString(radix) {
+    return this.value.toString(radix);
+  },
+  replace(...args) {
+    return this.value.replace.apply(this.value, args.map(arg => parseProxyValue(arg)));
+  },
+  [isDataSymbol]: true,
+  [Symbol.toPrimitive](hint) {
+    return this.value;
+  }
+};
 function proxyData(data, observers, dataMap, {isArray, receiver, prop} = {}) {
   if (typeof data !== 'object') {
     if (!isArray && printAble(data) ){
       let affects = getDataRelection(dataMap);
-      let ret = {
+      let ret = Object.assign({
         affects,
 				parent: receiver,
 				prop: prop,
         value: data,
-        toString(radix) {
-					return this.value.toString(radix);
-        },
-        [getRawSymbol]: data,
-				[isDataSymbol]: true,
-				[Symbol.toPrimitive](hint) {
-					return this.value;
-				}
-      };
+        [getRawSymbol]: data
+      }, proxyPrototype);
       return ret;
     } else {
       return data;
@@ -168,7 +173,7 @@ function proxyData(data, observers, dataMap, {isArray, receiver, prop} = {}) {
               let targetLen = target.length;
               let mapResults = [];
               let j = 0;
-              let proxyObj = proxyData(target, observers, dataMap, {isArray: Detect.isArray(target), receiver , prop});
+              let proxyObj = proxyData(target, observers, dataMap, {isArray: true, receiver , prop});
               for (let i = 0; i < targetLen; i++) {
                 if (undefined !== target[i] && null !== target[i]) {
                   mapResults.push(cbk(proxyObj[i], j));
@@ -181,7 +186,7 @@ function proxyData(data, observers, dataMap, {isArray, receiver, prop} = {}) {
             hackedFn.affects  = getRelateParent(dataMap, target);
             return hackedFn;
           }
-        } else if (Detect.isArray(target) && Detect.isFunction(target[prop])) {
+        } else if (Detect.isArray(target) && !['splice','push','pop','shift','unshift'].includes(prop) && Detect.isFunction(target[prop])) {
           return function(...args) {
             return target[prop].apply(target, args.map(arg => parseProxyValue(arg)));
           }
@@ -194,6 +199,7 @@ function proxyData(data, observers, dataMap, {isArray, receiver, prop} = {}) {
       }
     },
     set : (target, prop, value) => {
+      //console.log('$set', target, prop, value);
       if (value !== target[prop]) {
         if (observers) {
           let oldValue = target[prop];
