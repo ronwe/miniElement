@@ -189,16 +189,46 @@ function proxyData(data, observers, dataMap, {isArray, receiver, prop} = {}) {
         } else if (Detect.isArray(target) && Detect.isFunction(target[prop])) {
           if (['splice','push','pop','shift','unshift'].includes(prop)) {
             return function(...args) {
+              let keepChilds;
               let oldValue = target.slice();
               target[prop].apply(target, args.map(arg => parseProxyValue(arg)));
               let value = target.slice();
               let pushNew = 0;
               if (['push', 'pop'].includes(prop)) {
                 pushNew = value.length - oldValue.length;
+              } else  {
+                let offset, removeCount, insertArray;
+                if ('splice' === prop ) {
+                  [offset, removeCount, ...insertArray] = args;
+                } else if ('shift' === prop) {
+                  offset = 0;
+                  removeCount = 1;
+                } else if ('unshift' === prop) {
+                  offset = 0;
+                  removeCount = 0;
+                  insertArray = [args];
+                }
+                //console.log('args', offset, removeCount, insertArray);
+                keepChilds = [];
+                let j = 0
+                for (let i = 0 ;i < oldValue.length; i++ ) {
+                  let inRelation = true;
+                  if (i < offset || i >  offset + removeCount) {
+                  } else if (i == offset + removeCount) {
+                    j += insertArray? insertArray.length : 0;
+                  } else {
+                    inRelation = false;
+                  }
+                  if (inRelation) {
+                    keepChilds.push([i, j]);
+                    j++;
+                  }
+                }
+                //console.log('keepChilds', keepChilds);
               }
               let dataId = [].concat(getRelateParent(dataMap, target));
 
-              triggerObserver(target, prop, oldValue, value, pushNew , dataId);
+              triggerObserver({target, prop, oldValue, value, pushNew , dataId, keepChilds});
               return target;
             }
           } else {
@@ -242,7 +272,7 @@ function proxyData(data, observers, dataMap, {isArray, receiver, prop} = {}) {
             }
           }
 
-          triggerObserver(target, prop, oldValue, value, pushNew, dataId);
+          triggerObserver({target, prop, oldValue, value, pushNew, dataId});
         }
         if (Detect.isArray(target[prop]) && Detect.isArray(value)) {
           target[prop].splice(0, target[prop].length, ...value);
@@ -263,14 +293,15 @@ function proxyData(data, observers, dataMap, {isArray, receiver, prop} = {}) {
   })
 
 
-  function triggerObserver(target, prop, oldValue, value, pushNew, dataId) {
+  function triggerObserver({target, prop, oldValue, value, pushNew, dataId, keepChilds}) {
       observers.forEach( observer => observer({
         prop, 
         newValue: value, 
         oldValue, 
         dataRoot: target,
         dataNew: pushNew,
-        dataId: dataId.join(dataMarkerJoin)
+        dataId: dataId.join(dataMarkerJoin),
+        keepChilds
       }));
   }
 }

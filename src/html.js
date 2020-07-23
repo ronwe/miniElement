@@ -213,9 +213,9 @@ export function htmlEscape(str) {
  */
 export function updatingProperty({shadow, updated, getHtml, domShouldUpdate}) {
   let propertyStack = [];
-  return function({dataId, dataNew}) {
+  return function({dataId, dataNew, keepChilds}) {
     if (!propertyStack.some(([id]) => id=== dataId)) {
-      propertyStack.push([dataId, dataNew]);
+      propertyStack.push([dataId, dataNew, keepChilds]);
     }
     debounce(() => {
       if (domShouldUpdate && !domShouldUpdate()) {
@@ -232,7 +232,7 @@ export function updatingProperty({shadow, updated, getHtml, domShouldUpdate}) {
       let newHtml = getHtml();
       template.innerHTML = newHtml;
 
-      changedProperty.forEach(([dataId, dataNew]) => {
+      changedProperty.forEach(([dataId, dataNew, keepChilds]) => {
         let xPath = `[${dataAttrName}*="${dataMarkerAny}${dataId}${dataMarkerAny}"]`;
         let oldDoms =  shadow.querySelectorAll(xPath);
         oldDoms.forEach( oldDom => {
@@ -254,10 +254,37 @@ export function updatingProperty({shadow, updated, getHtml, domShouldUpdate}) {
                 }
               });
 
+            } else if ( 0 === dataNew && keepChilds && keepChilds.length) {
+              keepChilds.forEach( ([oldPosName, newPosName]) => {
+                let oldDataId = `${oldPosName}${dataMarkerJoin}${dataId}`;
+                let newDataId = `${newPosName}${dataMarkerJoin}${dataId}`;
+
+                let oldChildPath = `[${dataAttrName}*="${dataMarkerAny}${oldDataId}${dataMarkerAny}"]`;
+                let newChildPath = `[${dataAttrName}*="${dataMarkerAny}${newDataId}${dataMarkerAny}"]`;
+
+                let oldChildDom = oldDom.querySelector(oldChildPath); 
+                let newChildDom = newDom.querySelectorAll(newChildPath); 
+                if (oldChildDom && newChildDom) {
+                  if (1 == newChildDom.length) {
+                    childrensKeep.push([dataAttr, oldChildDom, newChildDom[0], true]);
+                  }
+                }
+              });
+
             }
             childrensKeep.forEach( item => {
-              let [dataAttr, child, childNew] = item;
-              childNew.replaceWith(child.cloneNode(true));
+              let [dataAttr, child, childNew, preserveAttr ] = item;
+              let attrToPreserv = []
+              if (preserveAttr) {
+                attrToPreserv.push([dataAttrName, childNew.getAttribute(dataAttrName)]);
+              }
+              let childCloned = child.cloneNode(true);
+              if (attrToPreserv.length) {
+                attrToPreserv.forEach( ([attrName, attrValue]) => {
+                  childCloned.setAttribute(attrName, attrValue);
+                });
+              }
+              childNew.replaceWith(childCloned);
             });
             oldDom.replaceWith(newDom.cloneNode(true));
           } else if (!newDom) {

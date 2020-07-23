@@ -12,9 +12,11 @@ var userCard  = {
 	property: {
 		[Public('name')]: `somebody's name`,
     ul: [
+      0,
       1,
       2,
-      3
+      3,
+      4,
     ],
     obj: {
       a: 'T' 
@@ -27,8 +29,7 @@ var userCard  = {
 	method: {
 		testClick: function(evt, {event,property}) {
 			//property.name = 'jack';
-      property.ul.splice(0,1);
-      console.log(property.ul.toString());
+      property.ul.splice(1,1 );
 		}
 	},
   onUnMount: function(root) {
@@ -43,7 +44,7 @@ var userCard  = {
       <form>
       <ul>
         $${property.ul.map( li => {
-          return html `<li>${li}<input value="${li}"/></li>`;
+          return html `<li><input value="${li}"/></li>`;
         })}
       </ul>
       </form>
