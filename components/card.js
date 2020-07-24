@@ -44,7 +44,7 @@ var userCard  = {
       <form>
       <ul>
         $${property.ul.map( li => {
-          return html `<li><input value="${li}"/></li>`;
+          return html `<li>${li}<input value="${li}"/></li>`;
         })}
       </ul>
       </form>

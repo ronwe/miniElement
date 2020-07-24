@@ -263,26 +263,24 @@ export function updatingProperty({shadow, updated, getHtml, domShouldUpdate}) {
                 let newChildPath = `[${dataAttrName}*="${dataMarkerAny}${newDataId}${dataMarkerAny}"]`;
 
                 let oldChildDom = oldDom.querySelector(oldChildPath); 
-                let newChildDom = newDom.querySelectorAll(newChildPath); 
+                let newChildDom = newDom.querySelector(newChildPath); 
                 if (oldChildDom && newChildDom) {
-                  if (1 == newChildDom.length) {
-                    childrensKeep.push([dataAttr, oldChildDom, newChildDom[0], true]);
-                  }
+                  childrensKeep.push([dataAttr, oldChildDom, newChildDom, [oldDataId, newDataId]]);
                 }
               });
 
             }
             childrensKeep.forEach( item => {
-              let [dataAttr, child, childNew, preserveAttr ] = item;
-              let attrToPreserv = []
-              if (preserveAttr) {
-                attrToPreserv.push([dataAttrName, childNew.getAttribute(dataAttrName)]);
-              }
+              let [dataAttr, child, childNew,  [oldDataId, newDataId] ] = item;
               let childCloned = child.cloneNode(true);
-              if (attrToPreserv.length) {
-                attrToPreserv.forEach( ([attrName, attrValue]) => {
-                  childCloned.setAttribute(attrName, attrValue);
-                });
+              if (oldDataId) {
+                let oldChilds = Array.from(childCloned.querySelectorAll( `[${dataAttrName}*="${oldDataId}${dataMarkerAny}"]`));
+                oldChilds.unshift(childCloned);
+
+                oldChilds.forEach( oldElement => {
+                  let bindDataAttr = oldElement.getAttribute(dataAttrName).replace(oldDataId, newDataId);
+                  oldElement.setAttribute(dataAttrName, bindDataAttr);
+                }); 
               }
               childNew.replaceWith(childCloned);
             });
