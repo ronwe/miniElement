@@ -108,6 +108,29 @@ let proxyPrototype = {
     return this.value;
   }
 };
+
+
+function readOnlyProxy(data, dataMap, {receiver} = {}) {
+  if (typeof data !== 'object') {
+    if (printAble(data)) {
+      let affects = getDataRelection(dataMap);
+      let ret = Object.assign({
+        affects,
+				parent: receiver,
+        value: data,
+        [getRawSymbol]: data
+      }, proxyPrototype);
+      return ret;
+    } else {
+      return data;
+    }
+  }
+  return new Proxy(data, {
+    get: (target, prop) => {
+      console.log('>>>', target, prop);  
+    }
+  });
+}
 function proxyData(data, observers, dataMap, {isArray, receiver, prop} = {}) {
   if (typeof data !== 'object') {
     if (!isArray && printAble(data) ){
@@ -132,6 +155,7 @@ function proxyData(data, observers, dataMap, {isArray, receiver, prop} = {}) {
       dataMap.set(obj, {dataId, parent});
     }
   }
+
 
   return new Proxy(data, {
     get: (target, prop, receiver) => {
@@ -176,7 +200,7 @@ function proxyData(data, observers, dataMap, {isArray, receiver, prop} = {}) {
               let proxyObj = proxyData(target, observers, dataMap, {isArray: true, receiver , prop});
               for (let i = 0; i < targetLen; i++) {
                 if (undefined !== target[i] && null !== target[i]) {
-                  mapResults.push(cbk(proxyObj[i], j));
+                  mapResults.push(cbk(proxyObj[i], readOnlyProxy(j, dataMap, {receiver: target[i]})));
                   j++;
                 }
               }

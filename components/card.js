@@ -12,11 +12,11 @@ var userCard  = {
 	property: {
 		[Public('name')]: `somebody's name`,
     ul: [
-      0,
-      1,
-      2,
-      3,
-      4,
+      'a',
+      'b',
+      'c',
+      'd',
+      'e',
     ],
     obj: {
       a: 'T' 
@@ -43,8 +43,8 @@ var userCard  = {
 			<p class="name" @click=${method.testClick}> ${property.name} </p>
       <form>
       <ul>
-        $${property.ul.map( li => {
-          return html `<li>${li}<input value="${li}"/></li>`;
+        $${property.ul.map( (li,index) => {
+          return html `<li data-index="${index}">${index}<input value="${li}"/></li>`;
         })}
       </ul>
       </form>

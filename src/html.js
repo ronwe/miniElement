@@ -34,6 +34,7 @@ function getBindedIdByFn(fn) {
 let dataMarkerBegin = '{%';
 let dataMarkerEnd =  '%}';
 let dataAttrName  = '_bind_data';
+let dataIndexAttrName= 'data-index';
 
 export function affectsToStr(affects) {
   return affects.join(dataMarkerJoin);
@@ -278,10 +279,18 @@ export function updatingProperty({shadow, updated, getHtml, domShouldUpdate}) {
                 oldChilds.unshift(childCloned);
 
                 oldChilds.forEach( oldElement => {
-                  let bindDataAttr = oldElement.getAttribute(dataAttrName).replace(oldDataId, newDataId);
-                  oldElement.setAttribute(dataAttrName, bindDataAttr);
+                  let bindDataAttr = oldElement.getAttribute(dataAttrName)
+                  if (bindDataAttr) {
+                    bindDataAttr = bindDataAttr.replace(oldDataId, newDataId);
+                    oldElement.setAttribute(dataAttrName, bindDataAttr);
+                  }
+
                 }); 
               }
+
+              let bindDataIndex = childNew.getAttribute(dataIndexAttrName);
+              childCloned.setAttribute(dataIndexAttrName, bindDataIndex);
+
               childNew.replaceWith(childCloned);
             });
             oldDom.replaceWith(newDom.cloneNode(true));
