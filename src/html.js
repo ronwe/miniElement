@@ -272,7 +272,7 @@ export function updatingProperty({shadow, updated, getHtml, domShouldUpdate}) {
 
             }
             childrensKeep.forEach( item => {
-              let [dataAttr, child, childNew,  [oldDataId, newDataId] ] = item;
+              let [dataAttr, child, childNew,  [oldDataId, newDataId] = [] ] = item;
               let childCloned = child.cloneNode(true);
               if (oldDataId) {
                 let oldChilds = Array.from(childCloned.querySelectorAll( `[${dataAttrName}*="${oldDataId}${dataMarkerAny}"]`));
