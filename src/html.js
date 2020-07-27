@@ -34,7 +34,6 @@ function getBindedIdByFn(fn) {
 let dataMarkerBegin = '{%';
 let dataMarkerEnd =  '%}';
 let dataAttrName  = '_bind_data';
-let dataIndexAttrName= 'data-index';
 
 export function affectsToStr(affects) {
   return affects.join(dataMarkerJoin);
@@ -275,8 +274,9 @@ export function updatingProperty({shadow, updated, getHtml, domShouldUpdate}) {
               let [dataAttr, child, childNew,  [oldDataId, newDataId] = [] ] = item;
               let childCloned = child.cloneNode(true);
               if (oldDataId) {
+                //数组split时节点内部的dataId需要保留
                 let oldChilds = Array.from(childCloned.querySelectorAll( `[${dataAttrName}*="${oldDataId}${dataMarkerAny}"]`));
-                oldChilds.unshift(childCloned);
+                //oldChilds.unshift(childCloned);
 
                 oldChilds.forEach( oldElement => {
                   let bindDataAttr = oldElement.getAttribute(dataAttrName)
@@ -288,8 +288,13 @@ export function updatingProperty({shadow, updated, getHtml, domShouldUpdate}) {
                 }); 
               }
 
-              let bindDataIndex = childNew.getAttribute(dataIndexAttrName);
-              childCloned.setAttribute(dataIndexAttrName, bindDataIndex);
+              //复制新节点的属性
+              if (childNew.hasAttributes()) {
+                let attrInNew =  childNew.attributes;
+                for (let i = 0; i < attrInNew.length; i++ ) {
+                  childCloned.setAttribute(attrInNew[i].name, attrInNew[i].value);
+                }
+              }
 
               childNew.replaceWith(childCloned);
             });
