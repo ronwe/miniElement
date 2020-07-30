@@ -159,7 +159,7 @@ function proxyData(data, observers, dataMap, {isArray, receiver, prop} = {}) {
 
   return new Proxy(data, {
     get: (target, prop, receiver) => {
-      //console.log('$get', prop, target, target.hasOwnProperty(prop));
+      //console.log('$get', prop, target);
 			if (Detect.isSymbol(prop)) {
 				if (isProxySymbol === prop) {
 					return true;
@@ -172,6 +172,9 @@ function proxyData(data, observers, dataMap, {isArray, receiver, prop} = {}) {
         }
 				return;
 			}
+      if (true  === target[isBlankSymbol] && ['map',  'every', 'some', 'filter', 'indexOf', 'lastIndexOf'].includes(prop)) {
+        return function() {};
+      }
 
       if (target.hasOwnProperty(prop)) {
         if (dataMap) {
