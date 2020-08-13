@@ -15,6 +15,7 @@ var userCard  = {
 		desc: {
 			pubtime: 1919
 		},
+    checked: true,
 		list: [
 			{name: '<i>', checked: true},
 			{name: 'hello'},
@@ -22,6 +23,9 @@ var userCard  = {
     ]
 	},
 	method: {
+    toggleChecked: function(evt, {property}) {
+      property.checked = !Value.raw(property.checked);
+    },
 		testClick: function(evt, {event,property}) {
 			property.name = 'jack';
 			let i = 10;
@@ -57,11 +61,14 @@ var userCard  = {
 			<p class="name" @click=${method.testClickNotExists}> ${property.name} </p>
 			<p class="email"> <input value=" @${property.email}"/>  $${property.email}</p>
 			<p class="desc"> 描述: ${`[${property.desc.pubtime}]${property.name}`} </p>
-			<p class="desc"> 
+			<p class="desc"  @click=${method.toggleChecked}> 
 				描述: 
 							<slot name="list-icon"></slot>
 				${property.info.desc.desc} 
 			</p>
+      <div class="${Value.checked(property.checked,'bb')}">
+        bind class
+      </div>
 			<ul>
 				${property.list.map( (book) => {
 					return html`<li>${book.name}
