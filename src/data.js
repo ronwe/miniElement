@@ -54,6 +54,9 @@ function parseProxyValue(obj) {
 parseProxyValue.checked = function(obj, trueString) {
 	return bindAttr(obj, trueString || 'checked');
 }
+parseProxyValue.unChecked = function(obj, falseString) {
+	return bindAttr(obj,  falseString || '', '', false);
+}
 parseProxyValue.equal = function(obj, valueMap, otherValue) {
 	return bindAttrMap(obj, valueMap, otherValue);
 }
@@ -66,9 +69,9 @@ function bindAttrMap(obj, valueMap, otherValue) {
 		return valueMap[parseProxyValue(obj)] || otherValue;
 	}
 }
-function bindAttr(obj, trueString, falseString = '') {
+function bindAttr(obj, trueString, falseString = '', equalValue = true) {
 	return () => {
-		return parseProxyValue(obj)? trueString : falseString;
+		return parseProxyValue(obj) == equalValue? trueString : falseString;
 	}
 }
 
